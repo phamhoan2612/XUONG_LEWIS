@@ -1,0 +1,2302 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Xưởng Lewis – Lắp phân tử, đoán công thức Lewis và hình 3D</title>
+<style>
+:root{
+  --paper:#f4f1ea; --paper2:#ebe6da; --card:#ffffff; --ink:#162033; --muted:#667085; --line:#e2ddd0;
+  --teal:#0e7c86; --teal-d:#0a5f67; --amber:#e8a317; --ok:#18955a; --bad:#d6393b;
+  --font:"Segoe UI","Be Vietnam Pro",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,"Cascadia Code",Consolas,monospace;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:var(--font);color:var(--ink);background:var(--paper);
+  background-image:radial-gradient(#d8d2c2 1px,transparent 1px);background-size:24px 24px;line-height:1.45;min-height:100vh}
+button,input,select{font:inherit;color:inherit}
+[hidden]{display:none!important}
+sub{font-size:.7em;line-height:0}
+
+/* ---------- Đầu trang ---------- */
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  padding:16px clamp(16px,4vw,44px);background:var(--ink);color:#fff;position:sticky;top:0;z-index:20;
+  box-shadow:0 2px 14px rgba(10,16,30,.35)}
+.brand{display:flex;align-items:center;gap:14px}
+.logo{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:26px;
+  background:linear-gradient(135deg,var(--teal),#2bb3a3);box-shadow:inset 0 -3px 0 rgba(0,0,0,.2)}
+.brand h1{margin:0;font-size:20px;letter-spacing:.2px}
+.brand p{margin:0;font-size:12.5px;color:#aab4c8}
+.stats{display:flex;gap:10px}
+.stat{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:12px;
+  padding:6px 16px;text-align:center;min-width:76px}
+.stat b{display:block;font-size:20px;line-height:1.1;font-variant-numeric:tabular-nums}
+.stat span{font-size:11px;color:#aab4c8;text-transform:uppercase;letter-spacing:.6px}
+.stat.flash b{animation:pop .5s}
+@keyframes pop{40%{transform:scale(1.35);color:var(--amber)}}
+
+main{max-width:1180px;margin:0 auto;padding:22px clamp(12px,3vw,28px) 70px;display:grid;gap:20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px;
+  box-shadow:0 1px 0 #fff inset,0 6px 22px rgba(40,34,10,.07)}
+.eyebrow{font-size:11.5px;letter-spacing:1.1px;text-transform:uppercase;color:var(--teal);font-weight:700}
+h2{margin:2px 0 0;font-size:clamp(24px,3.4vw,34px);letter-spacing:.2px}
+h3{margin:0;font-size:16px}
+.muted{color:var(--muted);font-size:14px}
+
+/* ---------- Nhập công thức ---------- */
+.start label{display:block;font-weight:700;margin-bottom:10px;font-size:17px}
+.start form{display:flex;gap:10px;flex-wrap:wrap}
+.start input{flex:1 1 260px;padding:14px 18px;font-size:22px;font-weight:600;border:2px solid var(--line);
+  border-radius:14px;background:#fbfaf6;outline:none;letter-spacing:.5px;transition:border-color .15s,box-shadow .15s}
+.start input:focus{border-color:var(--teal);box-shadow:0 0 0 4px rgba(14,124,134,.15)}
+.btn{border:2px solid var(--line);background:#fff;border-radius:14px;padding:12px 18px;font-weight:650;cursor:pointer;
+  transition:transform .1s,box-shadow .15s,background .15s;display:inline-flex;align-items:center;gap:8px}
+.btn:hover{background:#f7f4ec;transform:translateY(-1px)}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:var(--teal);border-color:var(--teal-d);color:#fff;box-shadow:0 3px 0 var(--teal-d)}
+.btn.primary:hover{background:#0f8c97}
+.btn.big{font-size:18px;padding:14px 34px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.start select{padding:12px 14px;border:2px solid var(--line);border-radius:14px;background:#fff;cursor:pointer}
+#startMsg{margin-top:12px;font-size:14.5px;min-height:4px}
+#startMsg .warn{color:var(--bad);font-weight:600}
+.pickrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.chips-title{margin:18px 0 8px;font-size:12.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.9px;font-weight:700;
+  display:flex;align-items:center;justify-content:space-between;gap:10px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1.5px solid var(--line);background:#fbfaf6;border-radius:999px;padding:6px 14px;cursor:pointer;font-weight:600;font-size:15px;
+  transition:all .12s}
+.chip:hover{border-color:var(--teal);background:#e8f5f6;color:var(--teal-d);transform:translateY(-1px)}
+.linkbtn{background:none;border:0;color:var(--teal-d);font-weight:650;cursor:pointer;padding:4px 0;text-decoration:underline;text-underline-offset:3px}
+.group-label{flex-basis:100%;font-size:12px;color:var(--muted);margin-top:6px}
+
+/* ---------- Khu lắp ráp ---------- */
+.build-top{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.hint{background:#fff8e6;border:1px solid #f1d58a;border-radius:12px;padding:10px 14px;margin-bottom:14px;font-size:14.5px}
+.build-grid{display:grid;grid-template-columns:270px 1fr;gap:16px;align-items:start}
+.tray{background:linear-gradient(#ece8dc,#e3ddcd);border-radius:16px;padding:14px;box-shadow:inset 0 2px 9px rgba(60,50,20,.16)}
+.tray-title{font-weight:700;font-size:14px;margin-bottom:8px;display:flex;flex-direction:column}
+.tray-title small{font-weight:500;color:var(--muted);font-size:12px}
+.atom-tray{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:8px;min-height:56px}
+.ball{width:52px;height:52px;border-radius:50%;border:0;display:grid;place-items:center;font-weight:800;font-size:19px;
+  cursor:pointer;transition:transform .12s;
+  box-shadow:inset -4px -6px 9px rgba(0,0,0,.28),inset 3px 4px 7px rgba(255,255,255,.5),0 4px 8px rgba(20,30,50,.28)}
+.ball:hover{transform:translateY(-3px) scale(1.06)}
+.ball.ghost{background:none!important;box-shadow:none;border:2px dashed #c5bfae;color:#c5bfae;cursor:default;transform:none}
+.sticks{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
+.stick{border:2px solid transparent;background:rgba(255,255,255,.7);border-radius:12px;padding:8px 6px 6px;cursor:pointer;
+  text-align:center;font-size:12.5px;font-weight:650;transition:all .12s}
+.stick:hover{background:#fff}
+.stick svg{display:block;margin:0 auto 4px}
+.stick.on{border-color:var(--teal);background:#fff;box-shadow:0 0 0 3px rgba(14,124,134,.18)}
+.stick.erase.on{border-color:var(--bad);box-shadow:0 0 0 3px rgba(214,57,59,.18)}
+.board-wrap{background:#fbfaf6;border:2px solid var(--line);border-radius:16px;overflow:hidden;position:relative;
+  background-image:radial-gradient(#ddd8c9 1.2px,transparent 1.2px);background-size:22px 22px}
+#board{display:block;width:100%;height:auto;touch-action:none;user-select:none}
+.atom{cursor:grab}
+.atom:active{cursor:grabbing}
+.atom text{pointer-events:none;font-weight:800;font-family:var(--font)}
+.bond-hit{cursor:pointer}
+.selring{animation:dash 1.2s linear infinite}
+@keyframes dash{to{stroke-dashoffset:-18}}
+.status{position:absolute;left:12px;right:12px;bottom:10px;background:rgba(22,32,51,.88);color:#fff;border-radius:10px;
+  padding:7px 12px;font-size:13.5px;pointer-events:none}
+.actions{display:flex;justify-content:space-between;align-items:center;margin-top:16px;gap:12px;flex-wrap:wrap}
+
+/* ---------- Kết quả ---------- */
+.verdict{border-radius:18px;padding:16px 22px;display:flex;gap:16px;align-items:flex-start;border:2px solid}
+.verdict.ok{background:#e9f8f0;border-color:#8fd5b0}
+.verdict.no{background:#fdeeee;border-color:#f0a9aa}
+.verdict .big{font-size:34px;line-height:1}
+.verdict h3{font-size:20px;margin-bottom:2px}
+.verdict ul{margin:6px 0 0;padding-left:20px;font-size:14.5px}
+.result-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:18px;margin-top:18px}
+.lewis-card{grid-column:span 7}
+.info-card{grid-column:span 5}
+.model-card{grid-column:span 6}
+.card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.seg{display:inline-flex;background:var(--paper2);border-radius:10px;padding:3px}
+.seg button{border:0;background:none;border-radius:8px;padding:5px 12px;font-size:13px;font-weight:650;cursor:pointer;color:var(--muted)}
+.seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.14)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.tabs button{border:1.5px solid var(--line);background:#fbfaf6;border-radius:999px;padding:4px 12px;font-size:12.5px;cursor:pointer;font-weight:600}
+.tabs button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.lewis-box{display:grid;place-items:center;background:#fdfcf8;border:1px dashed var(--line);border-radius:14px;min-height:260px;padding:10px;overflow:auto}
+.lewis-box svg{max-width:100%;height:auto;max-height:430px}
+.caption{font-size:12.5px;color:var(--muted);margin-top:8px}
+.model-card canvas{width:100%;aspect-ratio:4/3;display:block;border-radius:14px;cursor:grab;touch-action:none;
+  background:radial-gradient(circle at 50% 38%,#ffffff 0%,#eef1f6 55%,#dfe5ee 100%);border:1px solid var(--line)}
+.model-card canvas:active{cursor:grabbing}
+.viewbar{display:flex;gap:16px;flex-wrap:wrap;align-items:center;justify-content:center;margin-top:14px;
+  background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 16px;font-size:14px}
+.viewbar label{display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-weight:600}
+.viewbar input{accent-color:var(--teal);width:16px;height:16px}
+.next{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:22px}
+table.shape{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:8px}
+table.shape th{text-align:left;font-size:11.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);
+  border-bottom:2px solid var(--line);padding:4px 6px}
+table.shape td{padding:6px;border-bottom:1px solid var(--line);vertical-align:top}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:14px;margin:10px 0}
+.kv b{color:var(--muted);font-weight:600}
+.pill{display:inline-block;border-radius:999px;padding:1px 10px;font-weight:700;font-size:12.5px;color:#fff}
+.note{background:#eef6fb;border:1px solid #c4dff0;border-radius:10px;padding:8px 12px;font-size:13.5px;margin-top:10px}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(30px);background:var(--ink);color:#fff;
+  padding:11px 20px;border-radius:12px;font-weight:600;opacity:0;pointer-events:none;transition:all .25s;z-index:50;
+  box-shadow:0 8px 30px rgba(0,0,0,.35);max-width:90vw;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+footer{max-width:1180px;margin:0 auto;padding:0 28px 30px;color:var(--muted);font-size:12.5px;text-align:center}
+
+@media (max-width:980px){
+  .build-grid{grid-template-columns:1fr}
+  .lewis-card,.info-card,.model-card{grid-column:span 12}
+}
+@media (max-width:560px){
+  .stat{min-width:64px;padding:5px 10px}
+  .start input{font-size:19px}
+}
+
+#result,#buildCard{scroll-margin-top:96px}
+
+/* ---------- Bản nâng cấp: màn chơi, sao, bộ sưu tập, hiệu ứng ---------- */
+.stats{align-items:center}
+.soundbtn{width:42px;height:42px;border-radius:12px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.08);
+  font-size:19px;cursor:pointer;color:#fff;transition:background .15s}
+.soundbtn:hover{background:rgba(255,255,255,.18)}
+#home{display:grid;gap:20px}
+.hometabs{display:flex;gap:8px}
+.hometabs button{border:2px solid var(--line);background:#fff;border-radius:14px;padding:10px 20px;font-weight:700;cursor:pointer;font-size:15px}
+.hometabs button.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.chapters{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.chap{background:#fff;border:2px solid var(--line);border-radius:18px;padding:16px;display:grid;grid-template-columns:54px 1fr;gap:6px 14px;
+  align-items:center;cursor:pointer;transition:transform .12s,box-shadow .15s,border-color .15s;position:relative}
+.chap:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(40,34,10,.12)}
+.chap.open{border-color:var(--teal);box-shadow:0 0 0 4px rgba(14,124,134,.14)}
+.chap.locked{opacity:.6;cursor:not-allowed;background:#f3f0e8}
+.chap.locked:hover{transform:none;box-shadow:none}
+.chap.done{border-color:#e8a317;background:linear-gradient(#fffdf4,#fff6d6)}
+.chap-ico{width:54px;height:54px;border-radius:16px;display:grid;place-items:center;font-size:28px;background:var(--paper2)}
+.chap h4{margin:0;font-size:16px}
+.chap p{margin:1px 0 0;font-size:13px;color:var(--muted)}
+.bar{grid-column:1/-1;height:9px;border-radius:99px;background:var(--paper2);overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--teal),#35c1b0);border-radius:99px;transition:width .5s}
+.chap.done .bar i{background:linear-gradient(90deg,#e8a317,#ffd35c)}
+.chap-meta{grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:600;gap:8px}
+.chap-meta .star{color:#e8a317}
+.btn.mini{padding:5px 12px;font-size:13px;border-radius:10px;box-shadow:none}
+.chap-lock{font-size:12.5px;color:var(--muted);font-weight:600}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-top:12px}
+.tile{border:2px solid var(--line);background:#fbfaf6;border-radius:14px;padding:10px 8px;cursor:pointer;text-align:center;transition:all .12s;font-family:inherit}
+.tile:hover{border-color:var(--teal);transform:translateY(-2px);background:#fff}
+.tile b{display:block;font-size:20px}
+.tile small{display:block;color:var(--muted);font-size:12px;line-height:1.25;min-height:30px}
+.tile .st{letter-spacing:2px;color:#d4cdb8;font-size:15px}
+.tile .st .on,.stars .on{color:#e8a317}
+.tile.s3{background:#fff8e1;border-color:#f0cf6a}
+.tile.s1,.tile.s2{background:#f0f9f4;border-color:#a8dcc0}
+.coll{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.cell{border:2px solid var(--line);background:#fff;border-radius:16px;padding:8px;text-align:center;cursor:pointer;font-family:inherit;transition:all .12s;min-height:150px;display:flex;flex-direction:column;justify-content:space-between}
+.cell:hover{transform:translateY(-3px);border-color:var(--teal);box-shadow:0 8px 20px rgba(40,34,10,.12)}
+.cell svg{width:100%;height:84px}
+.cell b{font-size:17px}
+.cell .st{letter-spacing:2px;color:#d4cdb8}
+.cell.lock{background:#f3f0e8;border-style:dashed;cursor:default;color:#b3ab97}
+.cell.lock:hover{transform:none;box-shadow:none;border-color:var(--line)}
+.cell.lock .q{font-size:38px;font-weight:800;margin:12px 0 0}
+.cell.lock small{font-size:11.5px}
+
+.build-right{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.tries{display:flex;align-items:center;gap:4px;font-size:13px;font-weight:700;color:var(--muted)}
+.heart{font-size:22px;filter:grayscale(1) opacity(.25);transition:all .25s}
+.heart.on{filter:none}
+.heart.lost{animation:lose .5s}
+@keyframes lose{40%{transform:scale(1.5) rotate(-12deg)}}
+.trymsg{background:#fdeeee;border:1px solid #f0a9aa;border-radius:12px;padding:10px 14px;margin-bottom:14px;font-size:14.5px}
+.trymsg ul{margin:4px 0 0;padding-left:20px}
+.actions-left{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.shake{animation:shake .45s}
+@keyframes shake{20%{transform:translateX(-9px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(4px)}}
+.stars{font-size:34px;letter-spacing:4px;color:#d9d2bc;line-height:1.1;margin:2px 0 4px}
+.stars span{display:inline-block}
+.stars .on{animation:starpop .55s both;text-shadow:0 2px 10px rgba(232,163,23,.5)}
+@keyframes starpop{0%{transform:scale(0) rotate(-90deg);opacity:0}60%{transform:scale(1.6) rotate(10deg);opacity:1}100%{transform:scale(1) rotate(0)}}
+.badge{display:inline-block;background:var(--ink);color:#fff;border-radius:999px;padding:2px 12px;font-size:12.5px;font-weight:700;margin:2px 6px 2px 0}
+.badge.gold{background:#e8a317;color:#3d2a00}
+.verdict.rev{background:#eef6fb;border-color:#b6d9ee}
+#fx{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:70}
+@media (max-width:640px){.stats{gap:6px}.stat{min-width:54px;padding:4px 8px}.stat b{font-size:17px}.stat span{font-size:9.5px}}
+@media (prefers-reduced-motion:reduce){.stars .on,.shake,.heart.lost{animation:none}}
+.cell .st .on{color:#e8a317}
+
+/* ---------- Thử thách 60 giây ---------- */
+.challenge{display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center;background:linear-gradient(120deg,#162033,#23324f);color:#fff;border:0}
+.challenge h3{font-size:21px;margin-bottom:2px}
+.challenge p{margin:0;color:#c3cde0;font-size:14px}
+.challenge .muted{color:#aab4c8}
+.challenge .muted b{color:#ffd35c}
+.ch-ico{width:62px;height:62px;border-radius:18px;display:grid;place-items:center;font-size:34px;background:rgba(255,255,255,.1)}
+.ch-right{display:grid;gap:8px;justify-items:end;text-align:right}
+.chtimer{min-width:210px}
+.chtimer-top{display:flex;align-items:baseline;gap:6px}
+.chtimer-top b{font-size:40px;line-height:1;font-variant-numeric:tabular-nums;min-width:56px;text-align:right}
+.chtimer-top span{font-size:13px;color:var(--muted);font-weight:600}
+.chtimer-top .linkbtn{margin-left:auto;font-size:12.5px}
+.chbar{height:10px;border-radius:99px;background:var(--paper2);overflow:hidden;margin-top:4px}
+.chbar i{display:block;height:100%;width:100%;background:linear-gradient(90deg,var(--teal),#35c1b0);transition:width .15s linear}
+.chtimer.urgent .chtimer-top b{color:var(--bad);animation:beat 1s infinite}
+.chtimer.urgent .chbar i{background:linear-gradient(90deg,var(--bad),#ff8a6b)}
+@keyframes beat{50%{transform:scale(1.18)}}
+.chflash{font-weight:800;font-size:14px;opacity:0;margin-left:6px;white-space:nowrap}
+.chflash.good{color:var(--ok)}.chflash.bad{color:var(--bad)}
+.chflash.show{animation:flashup 1.1s both}
+@keyframes flashup{0%{opacity:0;transform:translateY(8px)}15%{opacity:1;transform:none}75%{opacity:1}100%{opacity:0;transform:translateY(-6px)}}
+.cdown{position:fixed;inset:0;z-index:80;display:grid;place-items:center;background:rgba(22,32,51,.82);backdrop-filter:blur(3px)}
+.cdown b{color:#fff;font-size:clamp(64px,16vw,150px);letter-spacing:2px;text-shadow:0 8px 40px rgba(0,0,0,.5)}
+.cdown b.pulse{animation:cdpulse .75s both}
+@keyframes cdpulse{0%{transform:scale(.3);opacity:0}35%{transform:scale(1.15);opacity:1}100%{transform:scale(1)}}
+.chres{max-width:760px;margin:0 auto;text-align:center}
+.chres .chips{justify-content:center}
+.chres .chips-title{justify-content:center}
+.chstats{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin:18px 0}
+.chstats div{background:var(--paper2);border-radius:16px;padding:12px 26px;min-width:120px}
+.chstats b{display:block;font-size:34px;line-height:1.1}
+.chstats span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px}
+@media (max-width:760px){.challenge{grid-template-columns:auto 1fr}.ch-right{grid-column:1/-1;justify-items:stretch;text-align:left}}
+
+/* ---------- Tự chọn phân tử, bài giao, gợi ý khi gõ ---------- */
+.freepanel{display:grid;gap:18px}
+.modebar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.seg.big button{padding:8px 18px;font-size:15px}
+.sugbox{position:relative;flex:1 1 280px}
+.sugbox input{width:100%}
+.sug{position:absolute;left:0;right:0;top:calc(100% + 6px);margin:0;padding:6px;list-style:none;background:#fff;border:2px solid var(--teal);
+  border-radius:14px;box-shadow:0 14px 34px rgba(20,30,50,.22);z-index:30;max-height:340px;overflow:auto}
+.sug li{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:9px 12px;border-radius:10px;cursor:pointer}
+.sug li b{font-size:18px}
+.sug li span{color:var(--muted);font-size:13.5px;text-align:right}
+.sug li:hover,.sug li.on{background:#e8f5f6}
+.codecard label{display:block;font-weight:700;margin-bottom:10px;font-size:16px}
+.codecard form,#genForm{display:flex;gap:10px;flex-wrap:wrap}
+.codecard input,#genForm input{flex:1 1 240px;padding:11px 14px;font-size:17px;font-weight:600;border:2px solid var(--line);border-radius:12px;background:#fbfaf6;outline:none}
+.codecard input:focus,#genForm input:focus,.assign-row input:focus{border-color:var(--teal)}
+#codeMsg{margin-top:8px;min-height:4px}
+.teacher summary{cursor:pointer;font-weight:700;font-size:16px}
+.teacher[open] summary{margin-bottom:6px}
+.gen{margin-top:12px;display:grid;gap:8px}
+.genrow{display:flex;gap:8px;align-items:center}
+.genrow span{min-width:84px;font-weight:700;font-size:13.5px;color:var(--muted)}
+.genrow input{flex:1;padding:8px 10px;border:2px solid var(--line);border-radius:10px;background:#fbfaf6;font-family:var(--mono);font-size:14px}
+.assign{border:2px solid var(--amber);background:linear-gradient(#fffdf4,#fff6d6)}
+.assign-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:14px 0 8px}
+.assign-row input{flex:1 1 220px;padding:12px 14px;font-size:18px;font-weight:600;border:2px solid var(--line);border-radius:12px;background:#fff;outline:none}
+.astable{margin:14px auto;max-width:560px;text-align:left}
+.stars.sm{font-size:20px;letter-spacing:2px;margin:0}
+#asText{width:100%;max-width:560px;font-family:var(--mono);font-size:13px;border:2px solid var(--line);border-radius:12px;padding:10px 12px;background:#fbfaf6;resize:none}
+
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <div class="logo">⬢</div>
+    <div><h1>Xưởng Lewis</h1><p>Lắp phân tử, đoán công thức Lewis và hình dạng 3D</p></div>
+  </div>
+  <div class="stats">
+    <div class="stat"><b id="sScore">0</b><span>Điểm</span></div>
+    <div class="stat"><b id="sStreak">0</b><span>Chuỗi đúng</span></div>
+    <div class="stat"><b id="sStars">0</b><span>Sao ★</span></div>
+    <div class="stat"><b id="sColl">0</b><span>Sưu tập</span></div>
+    <button class="soundbtn" id="btnSound" type="button" aria-label="Bật hoặc tắt âm thanh" title="Âm thanh">🔊</button>
+  </div>
+</header>
+
+<main>
+  <div id="home">
+    <!-- Bài được giao (hiện khi mở bằng link hoặc nhập mã) -->
+    <section class="card assign" id="assignCard" hidden></section>
+
+    <section class="card challenge" id="chCard">
+      <div class="ch-ico">⏱</div>
+      <div class="ch-text"><h3>Thử thách 60 giây</h3><p>Lắp càng nhiều phân tử càng tốt, độ khó tăng dần. Đúng +2 giây, sai −3 giây, bỏ qua −5 giây.</p></div>
+      <div class="ch-right"><div class="muted">Kỷ lục: <b id="chBest">chưa có</b></div><button class="btn primary" id="btnChStart" type="button">▶ Bắt đầu</button></div>
+    </section>
+
+    <nav class="hometabs" role="tablist">
+      <button type="button" id="tabFree" class="on" role="tab">🎯 Tự chọn phân tử</button>
+      <button type="button" id="tabMap" role="tab">🗺 Màn chơi</button>
+      <button type="button" id="tabColl" role="tab">🧪 Bộ sưu tập <span id="collCount"></span></button>
+    </nav>
+
+    <!-- Tab: Tự chọn phân tử -->
+    <section id="freePanel" class="freepanel">
+      <section class="card start" id="startCard">
+        <label for="formula">Chọn một phân tử để lắp</label>
+        <div class="modebar">
+          <div class="seg big" id="modeSeg">
+            <button type="button" data-mode="practice" class="on">🎯 Luyện tập</button>
+            <button type="button" data-mode="test">📝 Kiểm tra</button>
+          </div>
+          <div class="muted" id="modeDesc"></div>
+        </div>
+        <form id="formulaForm" autocomplete="off">
+          <div class="sugbox">
+            <input id="formula" type="text" placeholder="Gõ công thức hoặc tên: H2O, sulfuric acid…" spellcheck="false" inputmode="text" role="combobox" aria-expanded="false" aria-controls="sug">
+            <ul class="sug" id="sug" role="listbox" hidden></ul>
+          </div>
+          <button class="btn primary" type="submit">Bắt đầu lắp ráp →</button>
+          <button class="btn" type="button" id="btnRandom">🎲 Ngẫu nhiên</button>
+          <select id="level" aria-label="Độ khó khi chọn ngẫu nhiên">
+            <option value="all">Mọi độ khó</option>
+            <option value="easy">Dễ (≤ 3 nguyên tử)</option>
+            <option value="mid">Vừa (4–6 nguyên tử)</option>
+            <option value="hard">Khó (≥ 7 nguyên tử)</option>
+          </select>
+        </form>
+        <div id="startMsg"></div>
+        <div class="chips-title"><span>Gợi ý nhanh</span><button type="button" class="linkbtn" id="toggleAll"></button></div>
+        <div class="chips" id="chips"></div>
+        <div id="allWrap" hidden><div class="chips-title"><span>Toàn bộ thư viện</span></div><div class="chips" id="allChips"></div></div>
+      </section>
+
+      <section class="card codecard" id="codeCard">
+        <label for="codeIn">📝 Giáo viên giao bài? Nhập mã bài vào đây</label>
+        <form id="codeForm" autocomplete="off">
+          <input id="codeIn" type="text" placeholder="Ví dụ: C2H2,C2H4,CH4" spellcheck="false">
+          <button class="btn" type="submit">Mở bài</button>
+        </form>
+        <div id="codeMsg" class="muted"></div>
+      </section>
+
+      <details class="card teacher" id="teacherBox">
+        <summary>👩‍🏫 Dành cho giáo viên: tạo bài giao nhiều chất</summary>
+        <p class="muted">Nhập các công thức cách nhau bằng dấu phẩy. Học sinh mở bằng đường dẫn hoặc dán mã vào ô “Mã bài”.</p>
+        <form id="genForm" autocomplete="off">
+          <input id="genIn" type="text" value="C2H2, C2H4, CH4" spellcheck="false" aria-label="Danh sách công thức">
+          <button class="btn primary" type="submit">Tạo bài</button>
+        </form>
+        <div id="genOut"></div>
+      </details>
+    </section>
+
+    <!-- Tab: Màn chơi -->
+    <section id="mapPanel" hidden>
+      <div class="chapters" id="chapters"></div>
+      <div class="card" id="chapDetail" hidden></div>
+    </section>
+    <!-- Tab: Bộ sưu tập -->
+    <section id="collPanel" hidden>
+      <p class="muted" style="margin:0 0 12px">Mỗi phân tử bạn lắp đúng sẽ vào bộ sưu tập. Bấm vào một phân tử để xem lại Lewis và mô hình 3D.</p>
+      <div class="coll" id="collGrid"></div>
+    </section>
+  </div>
+
+  <!-- Lắp ráp -->
+  <section class="card build" id="buildCard" hidden>
+    <div class="build-top">
+      <div>
+        <div class="eyebrow" id="chapTag">Phân tử cần lắp</div>
+        <h2 id="molTitle"></h2>
+        <div class="muted" id="molSub"></div>
+      </div>
+      <div class="build-right">
+        <div class="chtimer" id="chTimerBox" hidden>
+          <div class="chtimer-top"><b id="chSec">60</b><span>giây</span><div class="chflash" id="chFlash"></div><button class="linkbtn" id="btnChQuit" type="button">Thoát</button></div>
+          <div class="chbar"><i id="chFill"></i></div>
+        </div>
+        <div class="tries" id="tries" aria-live="polite"></div>
+        <button class="btn" id="btnHint" type="button">💡 Gợi ý</button>
+      </div>
+    </div>
+    <div class="hint" id="hintBox" hidden></div>
+    <div class="trymsg" id="tryMsg" hidden></div>
+    <div class="build-grid">
+      <aside class="tray">
+        <div class="tray-title">Khay nguyên tử<small>Bấm vào viên bi để đặt lên bàn</small></div>
+        <div class="atom-tray" id="atomTray"></div>
+        <button class="linkbtn" id="btnPlaceAll" type="button">Đặt tất cả lên bàn</button>
+        <div class="tray-title" style="margin-top:14px">Khay que liên kết<small>Chọn que, rồi bấm lần lượt hai nguyên tử</small></div>
+        <div class="sticks" id="stickTray"></div>
+      </aside>
+      <div class="board-wrap" id="boardWrap">
+        <svg id="board" viewBox="0 0 760 460" role="application" aria-label="Bàn lắp ráp phân tử"></svg>
+        <div class="status" id="status"></div>
+      </div>
+    </div>
+    <div class="actions">
+      <div class="actions-left">
+        <button class="btn" id="btnClear" type="button">🗑 Xóa bàn</button>
+        <button class="linkbtn" id="btnGiveUp" type="button">Bỏ cuộc, xem đáp án</button>
+      </div>
+      <button class="btn primary big" id="btnCheck" type="button">✔ Kiểm tra</button>
+    </div>
+  </section>
+
+  <section id="chResult" hidden></section>
+  <section id="asResult" hidden></section>
+
+  <!-- Kết quả -->
+  <section id="result" hidden>
+    <div class="verdict" id="verdict"></div>
+    <div class="result-grid">
+      <div class="card lewis-card">
+        <div class="card-head">
+          <h3 id="lewisTitle">Công thức Lewis</h3>
+          <div class="seg" id="segLewis"><button type="button" data-m="lewis" class="on">Lewis</button><button type="button" data-m="struct">Công thức cấu tạo</button></div>
+        </div>
+        <div class="tabs" id="formTabs"></div>
+        <div class="lewis-box" id="lewisBox"></div>
+        <div class="caption" id="lewisCap"></div>
+      </div>
+      <div class="card info-card" id="infoBox"></div>
+      <div class="card model-card">
+        <div class="card-head"><h3>Mô hình 3D dạng có liên kết (que – bi)</h3></div>
+        <canvas id="cvBS" aria-label="Mô hình que bi 3D"></canvas>
+        <div class="caption">Kéo chuột để xoay, cuộn chuột để thu phóng.</div>
+      </div>
+      <div class="card model-card">
+        <div class="card-head"><h3>Mô hình 3D dạng đặc (các nguyên tử gắn với nhau)</h3></div>
+        <canvas id="cvSF" aria-label="Mô hình đặc 3D"></canvas>
+        <div class="caption">Bán kính mỗi quả cầu là bán kính van der Waals nên các nguyên tử chạm vào nhau.</div>
+      </div>
+    </div>
+    <div class="viewbar">
+      <label><input type="checkbox" id="optAuto" checked> Tự xoay</label>
+      <label><input type="checkbox" id="optLabel" checked> Hiện ký hiệu nguyên tố</label>
+      <button class="linkbtn" id="btnResetView" type="button">Đặt lại góc nhìn</button>
+    </div>
+    <div class="next">
+      <button class="btn primary" id="btnChapNext" type="button" hidden>Phân tử tiếp theo của màn →</button>
+      <button class="btn" id="btnReplay" type="button">↻ Chơi lại phân tử này</button>
+      <button class="btn" id="btnNext" type="button">🎲 Phân tử ngẫu nhiên</button>
+      <button class="btn" id="btnHome" type="button">🏠 Về trang chủ</button>
+    </div>
+  </section>
+</main>
+<footer>Xưởng Lewis · Hình học phân tử theo thuyết VSEPR; góc và độ dài liên kết là giá trị gần đúng dùng để minh họa.</footer>
+<canvas id="fx" aria-hidden="true"></canvas>
+<div class="cdown" id="cdown" hidden><b id="cdNum">3</b></div>
+<div class="toast" id="toast" role="status"></div>
+<script>
+/* ============================================================
+   LÕI HÓA HỌC: thư viện phân tử, công thức Lewis, VSEPR 3D, bố cục 2D
+   ============================================================ */
+(function (root) {
+'use strict';
+
+/* ---------- Nguyên tố ---------- */
+const EL = {
+  H:  {n:'Hydrogen',  ve:1, r:.31, vdw:1.20, en:2.20, per:1, c:'#eef0f3', tc:'#1f2937', ink:'#6b7280'},
+  Be: {n:'Beryllium',   ve:2, r:.96, vdw:1.53, en:1.57, per:2, c:'#86cf4d', tc:'#14301a', ink:'#4d7c0f'},
+  B:  {n:'Boron',     ve:3, r:.84, vdw:1.92, en:2.04, per:2, c:'#f0a8b0', tc:'#4a1d24', ink:'#be185d'},
+  C:  {n:'Carbon', ve:4, r:.76, vdw:1.70, en:2.55, per:2, c:'#3d4450', tc:'#ffffff', ink:'#111827'},
+  N:  {n:'Nitrogen',   ve:5, r:.71, vdw:1.55, en:3.04, per:2, c:'#3b6fe0', tc:'#ffffff', ink:'#2563eb'},
+  O:  {n:'Oxygen',    ve:6, r:.66, vdw:1.52, en:3.44, per:2, c:'#e5383b', tc:'#ffffff', ink:'#dc2626'},
+  F:  {n:'Fluorine',    ve:7, r:.57, vdw:1.47, en:3.98, per:2, c:'#6fcf7f', tc:'#10301a', ink:'#16a34a'},
+  Al: {n:'Aluminium',   ve:3, r:1.21,vdw:1.84, en:1.61, per:3, c:'#b9a9a9', tc:'#2b2222', ink:'#57534e'},
+  Si: {n:'Silicon',  ve:4, r:1.11,vdw:2.10, en:1.90, per:3, c:'#d9a066', tc:'#3a2410', ink:'#92400e'},
+  P:  {n:'Phosphorus',ve:5, r:1.07,vdw:1.80, en:2.19, per:3, c:'#f08c00', tc:'#ffffff', ink:'#ea580c'},
+  S:  {n:'Sulfur',ve:6,r:1.05,vdw:1.80,en:2.58, per:3, c:'#f2c94c', tc:'#3d3000', ink:'#a16207'},
+  Cl: {n:'Chlorine',    ve:7, r:1.02,vdw:1.75, en:3.16, per:3, c:'#2fbf71', tc:'#ffffff', ink:'#15803d'},
+  Br: {n:'Bromine',   ve:7, r:1.20,vdw:1.85, en:2.96, per:4, c:'#a4343a', tc:'#ffffff', ink:'#9f1239'},
+  I:  {n:'Iodine',    ve:7, r:1.39,vdw:1.98, en:2.66, per:5, c:'#7b3fa0', tc:'#ffffff', ink:'#7e22ce'},
+  Xe: {n:'Xenon',  ve:8, r:1.40,vdw:2.16, en:2.60, per:5, c:'#4aa3c9', tc:'#ffffff', ink:'#0e7490'}
+};
+
+/* ---------- Thư viện phân tử ----------
+   [công thức, cấu trúc (ký hiệu rút gọn), tên, tuỳ chọn]
+   Ký hiệu: nguyên tử viết liền = nối đơn; = đôi; # ba; ( ) nhánh; {+} {2-} điện tích hình thức.
+   forms: các dạng biểu diễn khác cũng được chấp nhận. ang: góc liên kết quanh nguyên tử trung tâm.
+   tw: góc xoắn giữa hai nhóm. */
+const LIB = [
+  ['H2',   'HH',        'Hydrogen'],
+  ['F2',   'FF',        'Fluorine'],
+  ['Cl2',  'ClCl',      'Chlorine'],
+  ['Br2',  'BrBr',      'Bromine'],
+  ['I2',   'II',        'Iodine'],
+  ['O2',   'O=O',       'Oxygen'],
+  ['N2',   'N#N',       'Nitrogen'],
+  ['HF',   'HF',        'Hydrogen fluoride'],
+  ['HCl',  'HCl',       'Hydrogen chloride'],
+  ['HBr',  'HBr',       'Hydrogen bromide'],
+  ['HI',   'HI',        'Hydrogen iodide'],
+  ['ICl',  'ICl',       'Iodine monochloride'],
+  ['CO',   'C#O',       'Carbon monoxide'],
+
+  ['H2O',  'HOH',       'Water'],
+  ['H2S',  'HSH',       'Hydrogen sulfide', {ang:92}],
+  ['NH3',  'N(H)(H)H',  'Ammonia'],
+  ['PH3',  'P(H)(H)H',  'Phosphine', {ang:93.5}],
+  ['CH4',  'C(H)(H)(H)H','Methane'],
+  ['SiH4', 'Si(H)(H)(H)H','Silane'],
+  ['BeH2', 'HBeH',      'Beryllium hydride'],
+  ['BeCl2','ClBeCl',    'Beryllium chloride'],
+  ['BF3',  'B(F)(F)F',  'Boron trifluoride'],
+  ['BCl3', 'B(Cl)(Cl)Cl','Boron trichloride'],
+  ['AlCl3','Al(Cl)(Cl)Cl','Aluminium chloride (dạng đơn phân tử)'],
+  ['NF3',  'N(F)(F)F',  'Nitrogen trifluoride', {ang:102}],
+  ['NCl3', 'N(Cl)(Cl)Cl','Nitrogen trichloride', {ang:107}],
+  ['PCl3', 'P(Cl)(Cl)Cl','Phosphorus trichloride', {ang:100}],
+  ['OF2',  'FOF',       'Oxygen difluoride', {ang:103}],
+  ['Cl2O', 'ClOCl',     'Dichlorine monoxide', {ang:111}],
+  ['SCl2', 'ClSCl',     'Sulfur dichloride', {ang:103}],
+  ['CO2',  'O=C=O',     'Carbon dioxide'],
+  ['CS2',  'S=C=S',     'Carbon disulfide'],
+  ['SO2',  'O=S=O',     'Sulfur dioxide', {forms:[['Dạng có liên kết cho–nhận (đủ octet)','O=S{+}O{-}']]}],
+  ['O3',   'O=O{+}O{-}','Ozone', {note:'Ozone có hai dạng cộng hưởng tương đương (liên kết đôi có thể ở bên trái hoặc bên phải).'}],
+  ['SO3',  'O=S(=O)=O', 'Sulfur trioxide', {forms:[['Dạng đủ octet (1 liên kết đôi)','O=S{2+}(O{-})O{-}']]}],
+  ['CCl4', 'C(Cl)(Cl)(Cl)Cl','Carbon tetrachloride'],
+  ['CF4',  'C(F)(F)(F)F','Carbon tetrafluoride'],
+  ['SiCl4','Si(Cl)(Cl)(Cl)Cl','Silicon tetrachloride'],
+  ['CHCl3','C(H)(Cl)(Cl)Cl','Chloroform (trichloromethane)'],
+  ['CH2Cl2','C(H)(H)(Cl)Cl','Dichloromethane'],
+  ['CH3Cl','C(H)(H)(H)Cl','Chloromethane'],
+  ['HCN',  'HC#N',      'Hydrogen cyanide'],
+  ['COCl2','O=C(Cl)Cl', 'Phosgene'],
+  ['CH2O', 'O=C(H)H',   'Formaldehyde (methanal)'],
+  ['N2O',  'N#N{+}O{-}','Dinitrogen monoxide', {forms:[['Dạng cộng hưởng khác','N{-}=N{+}=O']]}],
+
+  ['HClO', 'HOCl',      'Hypochlorous acid'],
+  ['HClO2','HOCl=O',    'Chlorous acid'],
+  ['HClO3','HOCl(=O)=O','Chloric acid', {forms:[['Dạng đủ octet (liên kết cho–nhận)','HOCl{2+}(O{-})O{-}']]}],
+  ['HClO4','HOCl(=O)(=O)=O','Perchloric acid', {forms:[['Dạng đủ octet (liên kết cho–nhận)','HOCl{3+}(O{-})(O{-})O{-}']]}],
+  ['HNO2', 'HON=O',     'Nitrous acid'],
+  ['HNO3', 'HON{+}(=O)O{-}','Nitric acid', {note:'Trong HNO3, N không thể mở rộng octet nên có liên kết cho–nhận (N⁺ và O⁻).'}],
+  ['H2CO3','O=C(OH)OH', 'Carbonic acid'],
+  ['H2SO3','HOS(=O)OH', 'Sulfurous acid', {forms:[['Dạng đủ octet (liên kết cho–nhận)','HOS{+}(O{-})OH']]}],
+  ['H2SO4','HOS(=O)(=O)OH','Sulfuric acid', {forms:[['Dạng đủ octet (liên kết cho–nhận)','HOS{2+}(O{-})(O{-})OH']]}],
+  ['H3PO3','P(H)(=O)(OH)OH','Phosphorous acid', {forms:[['Dạng đủ octet (liên kết cho–nhận)','P{+}(H)(O{-})(OH)OH']]}],
+  ['H3PO4','P(=O)(OH)(OH)OH','Phosphoric acid', {forms:[['Dạng đủ octet (liên kết cho–nhận)','P{+}(O{-})(OH)(OH)OH']]}],
+  ['SOCl2','O=S(Cl)Cl', 'Thionyl chloride', {forms:[['Dạng đủ octet (liên kết cho–nhận)','O{-}S{+}(Cl)Cl']]}],
+  ['POCl3','O=P(Cl)(Cl)Cl','Phosphoryl chloride', {forms:[['Dạng đủ octet (liên kết cho–nhận)','O{-}P{+}(Cl)(Cl)Cl']]}],
+  ['SO2Cl2','O=S(=O)(Cl)Cl','Sulfuryl chloride', {forms:[['Dạng đủ octet (liên kết cho–nhận)','O{-}S{2+}(O{-})(Cl)Cl']]}],
+
+  ['H2O2', 'HOOH',      'Hydrogen peroxide', {tw:111}],
+  ['N2H4', 'N(H)(H)N(H)H','Hydrazine', {tw:90}],
+  ['NH2OH','N(H)(H)OH', 'Hydroxylamine'],
+
+  ['C2H6', 'C(H)(H)(H)C(H)(H)H','Ethane'],
+  ['C2H4', 'C(H)(H)=C(H)H','Ethene (ethylene)'],
+  ['C2H2', 'HC#CH',     'Ethyne (acetylene)'],
+  ['C3H8', 'C(H)(H)(H)C(H)(H)C(H)(H)H','Propane'],
+  ['C3H6', 'C(H)(H)(H)C(H)=C(H)H','Propene'],
+  ['CH3OH','C(H)(H)(H)OH','Methanol'],
+  ['C2H5OH','C(H)(H)(H)C(H)(H)OH','Ethanol'],
+  ['CH3OCH3','C(H)(H)(H)OC(H)(H)H','Dimethyl ether'],
+  ['CH3NH2','C(H)(H)(H)N(H)H','Methylamine'],
+  ['CH3CN','C(H)(H)(H)C#N','Acetonitrile'],
+  ['HCOOH','O=C(H)OH',  'Formic acid'],
+  ['CH3CHO','C(H)(H)(H)C(H)=O','Acetaldehyde (ethanal)'],
+  ['CH3COOH','C(H)(H)(H)C(=O)OH','Acetic acid'],
+  ['CH3COCH3','C(H)(H)(H)C(=O)C(H)(H)H','Acetone (propanone)'],
+
+  ['PCl5', 'P(Cl)(Cl)(Cl)(Cl)Cl','Phosphorus pentachloride'],
+  ['SF4',  'S(F)(F)(F)F','Sulfur tetrafluoride'],
+  ['ClF3', 'Cl(F)(F)F', 'Chlorine trifluoride'],
+  ['XeF2', 'FXeF',      'Xenon difluoride'],
+  ['XeF4', 'Xe(F)(F)(F)F','Xenon tetrafluoride'],
+  ['SF6',  'S(F)(F)(F)(F)(F)F','Sulfur hexafluoride'],
+  ['BrF5', 'Br(F)(F)(F)(F)F','Bromine pentafluoride']
+];
+
+/* ---------- Phân tích ký hiệu ---------- */
+function parseChg(t) {
+  const m = /^(\d?)([+-])$/.exec(t);
+  if (!m) throw new Error('Điện tích sai: ' + t);
+  return (m[1] ? +m[1] : 1) * (m[2] === '+' ? 1 : -1);
+}
+function parseSmi(s) {
+  s = s.replace(/\s+/g, '');
+  const atoms = [], bonds = [], stack = [];
+  let prev = -1, order = 1, i = 0;
+  while (i < s.length) {
+    const ch = s[i];
+    if (ch === '(') { stack.push(prev); i++; continue; }
+    if (ch === ')') { prev = stack.pop(); i++; continue; }
+    if (ch === '=') { order = 2; i++; continue; }
+    if (ch === '#') { order = 3; i++; continue; }
+    if (/[A-Z]/.test(ch)) {
+      let sym = ch; i++;
+      if (/[a-z]/.test(s[i] || '')) { sym += s[i]; i++; }
+      let chg = null;
+      if (s[i] === '{') { const j = s.indexOf('}', i); chg = parseChg(s.slice(i + 1, j)); i = j + 1; }
+      if (!EL[sym]) throw new Error('Nguyên tố lạ: ' + sym + ' trong ' + s);
+      atoms.push({ el: sym, chg });
+      const idx = atoms.length - 1;
+      if (prev >= 0) bonds.push({ a: prev, b: idx, o: order });
+      prev = idx; order = 1; continue;
+    }
+    throw new Error('Ký tự sai "' + ch + '" trong ' + s);
+  }
+  return { atoms, bonds };
+}
+
+/* ---------- Điện tích hình thức và cặp e tự do ---------- */
+function autoFc(el, bs) {
+  const e = EL[el];
+  const cands = [0, 1, -1, 2, -2];
+  const ok = [];
+  for (const fc of cands) {
+    const lp = (e.ve - fc - bs) / 2;
+    if (!Number.isInteger(lp) || lp < 0) continue;
+    const count = 2 * lp + 2 * bs;
+    const limit = e.per === 1 ? 2 : (e.per === 2 ? 8 : 99);
+    if (count > limit) continue;
+    ok.push({ fc, count });
+  }
+  if (!ok.length) return null;
+  if (ok[0].fc === 0) return 0;
+  ok.sort((a, b) => (Math.abs(8 - a.count) - Math.abs(8 - b.count)) || (Math.abs(a.fc) - Math.abs(b.fc)));
+  return ok[0].fc;
+}
+
+function analyze(src) {
+  const g = {
+    atoms: src.atoms.map((a, i) => ({ i, el: a.el, chg: a.chg, nb: [], bs: 0 })),
+    bonds: src.bonds.map(b => ({ a: b.a, b: b.b, o: b.o })),
+    warn: []
+  };
+  g.bonds.forEach(b => {
+    g.atoms[b.a].nb.push({ j: b.b, o: b.o }); g.atoms[b.a].bs += b.o;
+    g.atoms[b.b].nb.push({ j: b.a, o: b.o }); g.atoms[b.b].bs += b.o;
+  });
+  let tot = 0, ve = 0;
+  g.atoms.forEach(a => {
+    const e = EL[a.el];
+    let fc = (a.chg === null || a.chg === undefined) ? autoFc(a.el, a.bs) : a.chg;
+    if (fc === null) { g.warn.push('Không cân được e cho ' + a.el + a.i); fc = 0; }
+    a.fc = fc;
+    a.lp = (e.ve - fc - a.bs) / 2;
+    if (!Number.isInteger(a.lp) || a.lp < 0) g.warn.push('Cặp e tự do sai ở ' + a.el + a.i + ' (' + a.lp + ')');
+    tot += fc; ve += e.ve;
+  });
+  if (tot !== 0) g.warn.push('Tổng điện tích hình thức ≠ 0 (' + tot + ')');
+  g.ve = ve;
+  // nguyên tử trung tâm (gốc của cây)
+  const heavy = g.atoms.filter(a => a.el !== 'H');
+  const pool = heavy.length ? heavy : g.atoms;
+  let best = pool[0];
+  pool.forEach(a => {
+    if (a.nb.length > best.nb.length ||
+       (a.nb.length === best.nb.length && EL[a.el].en < EL[best.el].en - 1e-9)) best = a;
+  });
+  g.root = best.i;
+  return g;
+}
+
+/* ---------- Đồng cấu đồ thị (kiểm tra đáp án) ---------- */
+function sameGraph(A, B) {
+  const n = A.atoms.length;
+  if (n !== B.atoms.length) return false;
+  const mat = (G) => {
+    const m = Array.from({ length: n }, () => new Array(n).fill(0));
+    G.bonds.forEach(b => { m[b.a][b.b] = b.o; m[b.b][b.a] = b.o; });
+    return m;
+  };
+  const MA = mat(A), MB = mat(B);
+  const sig = (G, M, i) => {
+    const l = [];
+    for (let j = 0; j < n; j++) if (M[i][j]) l.push(G.atoms[j].el + M[i][j]);
+    return G.atoms[i].el + '|' + l.sort().join(',');
+  };
+  const sa = A.atoms.map((_, i) => sig(A, MA, i));
+  const sb = B.atoms.map((_, i) => sig(B, MB, i));
+  const sortedA = sa.slice().sort().join(';'), sortedB = sb.slice().sort().join(';');
+  if (sortedA !== sortedB) return false;
+  // thứ tự duyệt: ưu tiên nguyên tử có nhiều liên kết
+  const order = A.atoms.map((_, i) => i).sort((x, y) => (sa[y].length - sa[x].length));
+  const map = new Array(n).fill(-1), used = new Array(n).fill(false);
+  function bt(k) {
+    if (k === n) return true;
+    const i = order[k];
+    for (let j = 0; j < n; j++) {
+      if (used[j] || sa[i] !== sb[j]) continue;
+      let good = true;
+      for (let q = 0; q < k; q++) {
+        const i2 = order[q];
+        if (MA[i][i2] !== MB[j][map[i2]]) { good = false; break; }
+      }
+      if (!good) continue;
+      map[i] = j; used[j] = true;
+      if (bt(k + 1)) return true;
+      map[i] = -1; used[j] = false;
+    }
+    return false;
+  }
+  return bt(0);
+}
+
+function isConnected(G) {
+  const n = G.atoms.length;
+  if (n === 0) return false;
+  const adj = Array.from({ length: n }, () => []);
+  G.bonds.forEach(b => { adj[b.a].push(b.b); adj[b.b].push(b.a); });
+  const seen = new Array(n).fill(false); const st = [0]; seen[0] = true; let c = 1;
+  while (st.length) { const x = st.pop(); adj[x].forEach(y => { if (!seen[y]) { seen[y] = true; c++; st.push(y); } }); }
+  return c === n;
+}
+
+/* ---------- Vector ---------- */
+const add = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+const mul = (a, k) => [a[0] * k, a[1] * k, a[2] * k];
+const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+const cross = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+const len = (a) => Math.sqrt(dot(a, a));
+const nrm = (a) => { const l = len(a) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };
+
+/* ---------- Hình học VSEPR ---------- */
+function idealVectors(sn) {
+  const s3 = Math.sqrt(3) / 2;
+  switch (sn) {
+    case 2: return [[0, 0, 1], [0, 0, -1]];
+    case 3: return [[0, 0, 1], [s3, 0, -.5], [-s3, 0, -.5]];
+    case 4: {
+      const c = -1 / 3, s = Math.sqrt(8) / 3, t = 2 * Math.PI / 3;
+      return [[0, 0, 1], [s, 0, c], [s * Math.cos(t), s * Math.sin(t), c], [s * Math.cos(2 * t), s * Math.sin(2 * t), c]];
+    }
+    case 5: return [[0, 0, 1], [0, 0, -1], [1, 0, 0], [-.5, s3, 0], [-.5, -s3, 0]];
+    case 6: return [[0, 0, 1], [0, 0, -1], [1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0]];
+  }
+  return [[0, 0, 1]];
+}
+function lpIndices(sn, lp) {
+  if (!lp) return [];
+  if (sn === 3 || sn === 4) { const r = []; for (let k = sn - lp; k < sn; k++) r.push(k); return r; }
+  if (sn === 5) return [4, 3, 2].slice(0, lp);
+  if (sn === 6) return lp === 1 ? [5] : [4, 5];
+  return [];
+}
+const DEF_ANG = { '3,1': 118, '4,1': 107, '4,2': 104.5 };
+
+function squeeze(B, beta) {
+  const n = B.length;
+  const c = nrm(B.reduce((s, v) => add(s, v), [0, 0, 0]));
+  const cosb = Math.cos(beta * Math.PI / 180), cosAz = Math.cos(2 * Math.PI / n);
+  let cos2 = (cosb - cosAz) / (1 - cosAz);
+  cos2 = Math.max(0, Math.min(1, cos2));
+  const cp = Math.sqrt(cos2), sp = Math.sqrt(1 - cos2);
+  return B.map(v => {
+    const p = sub(v, mul(c, dot(v, c)));
+    return add(mul(c, cp), mul(nrm(p), sp));
+  });
+}
+function anyPerp(d) {
+  const t = Math.abs(d[0]) < .9 ? [1, 0, 0] : [0, 1, 0];
+  return nrm(cross(d, t));
+}
+function alignSet(B, d, ref, twDeg) {
+  const e0 = nrm(B[0]);
+  let u;
+  if (B.length > 1) {
+    const q = sub(B[1], mul(e0, dot(B[1], e0)));
+    u = len(q) < 1e-6 ? anyPerp(e0) : nrm(q);
+  } else u = anyPerp(e0);
+  const w = cross(e0, u);
+  let u1 = null;
+  if (ref) { const q = sub(ref, mul(d, dot(ref, d))); if (len(q) > 1e-6) u1 = nrm(q); }
+  if (!u1) u1 = anyPerp(d);
+  const t = twDeg * Math.PI / 180;
+  const u2 = add(mul(u1, Math.cos(t)), mul(cross(d, u1), Math.sin(t)));
+  const w2 = cross(d, u2);
+  return B.map(v => add(add(mul(d, dot(v, e0)), mul(u2, dot(v, u))), mul(w2, dot(v, w))));
+}
+
+function bondLen(g, a, b, o) {
+  if (g.atoms[a].el === 'H' && g.atoms[b].el === 'H') return .74;
+  const f = o === 1 ? 1 : (o === 2 ? .88 : .80);
+  return (EL[g.atoms[a].el].r + EL[g.atoms[b].el].r) * f;
+}
+
+/* tọa độ 3D (Å) */
+function build3D(g, opt) {
+  opt = opt || {};
+  const n = g.atoms.length;
+  const pos = new Array(n).fill(null);
+  const rootAtom = g.atoms[g.root];
+  pos[g.root] = [0, 0, 0];
+
+  function layAtom(i, parent, dToParent, ref) {
+    const a = g.atoms[i];
+    const nbs = a.nb.map(x => x.j);
+    const kids = nbs.filter(j => j !== parent);
+    if (!kids.length) return;
+    const sn = a.nb.length + a.lp;
+    let B;
+    if (a.nb.length === 1) B = [[0, 0, 1]];
+    else {
+      const T = idealVectors(sn);
+      const lpi = lpIndices(sn, a.lp);
+      B = [];
+      for (let k = 0; k < T.length; k++) if (!lpi.includes(k)) B.push(T[k]);
+      B = B.slice(0, a.nb.length);
+      if ((sn === 3 || sn === 4) && a.lp > 0 && B.length >= 2) {
+        let beta = DEF_ANG[sn + ',' + a.lp];
+        if (i === g.root && opt.ang) beta = opt.ang;
+        B = squeeze(B, beta);
+      }
+    }
+    const order = parent >= 0 ? [parent].concat(kids) : kids.slice();
+    let Bw = B;
+    if (parent >= 0) {
+      const snP = g.atoms[parent].nb.length + g.atoms[parent].lp;
+      let tw = (opt.tw !== undefined) ? opt.tw : ((snP === 4 && sn === 4) ? 60 : 0);
+      Bw = alignSet(B, dToParent, ref, tw);
+    }
+    order.forEach((j, k) => {
+      if (j === parent) return;
+      const dir = Bw[k];
+      const o = a.nb.find(x => x.j === j).o;
+      pos[j] = add(pos[i], mul(nrm(dir), bondLen(g, i, j, o)));
+      // hướng tham chiếu = hướng tới láng giềng đầu tiên khác j
+      const qi = order.findIndex(x => x !== j);
+      const refv = qi >= 0 ? Bw[qi] : null;
+      layAtom(j, i, mul(nrm(dir), -1), refv);
+    });
+  }
+  layAtom(g.root, -1, null, null);
+  // tâm
+  const c = pos.reduce((s, p) => add(s, p), [0, 0, 0]).map(x => x / n);
+  return pos.map(p => sub(p, c));
+}
+
+
+/* ---------- Căn trục chính: phân tử phẳng quay mặt về người xem ---------- */
+function eig3(A) {
+  const a = A.map(r => r.slice()), v = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
+  for (let it = 0; it < 60; it++) {
+    let p = 0, q = 1, m = Math.abs(a[0][1]);
+    if (Math.abs(a[0][2]) > m) { p = 0; q = 2; m = Math.abs(a[0][2]); }
+    if (Math.abs(a[1][2]) > m) { p = 1; q = 2; m = Math.abs(a[1][2]); }
+    if (m < 1e-12) break;
+    const th = (a[q][q] - a[p][p]) / (2 * a[p][q]);
+    const t = (th >= 0 ? 1 : -1) / (Math.abs(th) + Math.sqrt(th * th + 1));
+    const c = 1 / Math.sqrt(t * t + 1), s = t * c;
+    for (let k = 0; k < 3; k++) { const x = a[k][p], y = a[k][q]; a[k][p] = c * x - s * y; a[k][q] = s * x + c * y; }
+    for (let k = 0; k < 3; k++) { const x = a[p][k], y = a[q][k]; a[p][k] = c * x - s * y; a[q][k] = s * x + c * y; }
+    for (let k = 0; k < 3; k++) { const x = v[k][p], y = v[k][q]; v[k][p] = c * x - s * y; v[k][q] = s * x + c * y; }
+  }
+  return { vals: [a[0][0], a[1][1], a[2][2]], vecs: [0, 1, 2].map(j => [v[0][j], v[1][j], v[2][j]]) };
+}
+function alignPCA(pos) {
+  if (pos.length < 2) return pos;
+  const M = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
+  pos.forEach(p => { for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) M[i][j] += p[i] * p[j]; });
+  const e = eig3(M);
+  const idx = [0, 1, 2].sort((x, y) => e.vals[y] - e.vals[x]);
+  const e1 = nrm(e.vecs[idx[0]]), e2 = nrm(e.vecs[idx[1]]), e3 = cross(e1, e2);
+  return pos.map(p => [dot(p, e1), dot(p, e2), dot(p, e3)]);
+}
+
+/* ---------- Bố cục Lewis 2D ---------- */
+const ROOT2D = {
+  '2,0': { b: [180, 0], l: [] },
+  '3,0': { b: [90, 210, 330], l: [] },
+  '3,1': { b: [210, 330], l: [90] },
+  '4,0': { b: [0, 180, 90, 270], l: [] },
+  '4,1': { b: [0, 180, 270], l: [90] },
+  '4,2': { b: [225, 315], l: [45, 135] },
+  '5,0': { b: [90, 162, 234, 306, 18], l: [] },
+  '5,1': { b: [18, 162, 234, 306], l: [90] },
+  '5,2': { b: [180, 0, 270], l: [60, 120] },
+  '5,3': { b: [180, 0], l: [90, 240, 300] },
+  '6,0': { b: [0, 60, 120, 180, 240, 300], l: [] },
+  '6,1': { b: [90, 150, 210, 330, 30], l: [270] },
+  '6,2': { b: [0, 90, 180, 270], l: [45, 225] }
+};
+function terminalLP(thetaP, lp) {
+  if (lp === 1) return [thetaP + 180];
+  if (lp === 2) return [thetaP + 90, thetaP - 90];
+  if (lp === 3) return [thetaP + 90, thetaP + 180, thetaP - 90];
+  if (lp === 4) return [thetaP + 45, thetaP + 135, thetaP + 225, thetaP + 315];
+  return [];
+}
+function permutations(arr) {
+  if (arr.length <= 1) return [arr.slice()];
+  const out = [];
+  arr.forEach((x, i) => {
+    permutations(arr.slice(0, i).concat(arr.slice(i + 1))).forEach(r => out.push([x].concat(r)));
+  });
+  return out;
+}
+function layout2D(g, L) {
+  L = L || 64;
+  const n = g.atoms.length;
+  const rad = (d) => d * Math.PI / 180;
+  let p, lps, used, stack, minD;
+
+  function collide(pt) {
+    for (let q = 0; q < n; q++) {
+      if (p[q] && Math.hypot(p[q][0] - pt[0], p[q][1] - pt[1]) < minD) return true;
+    }
+    return false;
+  }
+  function variants(i, parent, thetaP) {
+    const a = g.atoms[i];
+    const kids = a.nb.map(x => x.j).filter(j => j !== parent);
+    const sn = a.nb.length + a.lp;
+    const res = [];
+    if (parent < 0) {
+      if (a.nb.length === 1) return [{ kid: [0], lp: terminalLP(0, a.lp) }];
+      const t = ROOT2D[sn + ',' + a.lp] || ROOT2D['4,0'];
+      const angs = t.b.slice(0, kids.length);
+      permutations(angs.map((_, k) => k)).forEach(pm => res.push({ kid: pm.map(k => angs[k]), lp: t.l.slice() }));
+      return res;
+    }
+    if (!kids.length) return [{ kid: [], lp: terminalLP(thetaP, a.lp) }];
+    const c = kids.length;
+    if (c === 1 && a.lp === 0) return [{ kid: [thetaP + 180], lp: [] }];
+    if (c === 1) {
+      [1, -1].forEach(sg => {
+        const lpA = a.lp === 1 ? [thetaP + sg * 240]
+          : a.lp === 2 ? [thetaP + sg * 210, thetaP + sg * 285]
+          : [thetaP + sg * 200, thetaP + sg * 240, thetaP + sg * 280];
+        res.push({ kid: [thetaP + sg * 120], lp: lpA });
+      });
+      return res;
+    }
+    const step = 360 / sn;
+    const angs = kids.map((_, k) => thetaP + step * (k + 1));
+    const lpA = [];
+    for (let k = 0; k < a.lp; k++) lpA.push(thetaP + step * (c + 1 + k));
+    permutations(angs.map((_, k) => k)).forEach(pm => res.push({ kid: pm.map(k => angs[k]), lp: lpA }));
+    return res;
+  }
+  function place(i, parent, thetaP) {
+    const a = g.atoms[i];
+    const kids = a.nb.map(x => x.j).filter(j => j !== parent);
+    const vs = variants(i, parent, thetaP);
+    for (const v of vs) {
+      const mark = stack.length;
+      let ok = true;
+      for (let k = 0; k < kids.length; k++) {
+        const pt = [p[i][0] + L * Math.cos(rad(v.kid[k])), p[i][1] + L * Math.sin(rad(v.kid[k]))];
+        if (collide(pt)) { ok = false; break; }
+        p[kids[k]] = pt; stack.push(kids[k]);
+      }
+      if (ok) for (let k = 0; k < kids.length; k++) {
+        if (!place(kids[k], i, v.kid[k] + 180)) { ok = false; break; }
+      }
+      if (ok) {
+        lps[i] = v.lp;
+        used[i] = v.kid.concat(v.lp, parent >= 0 ? [thetaP] : []);
+        return true;
+      }
+      while (stack.length > mark) p[stack.pop()] = null;
+    }
+    return false;
+  }
+  for (const f of [0.8, 0.62, 0.4, 0]) {
+    p = new Array(n).fill(null);
+    lps = Array.from({ length: n }, () => []);
+    used = Array.from({ length: n }, () => []);
+    stack = []; minD = f * L;
+    p[g.root] = [0, 0];
+    if (place(g.root, -1, 0)) break;
+  }
+  return { p, lps, used };
+}
+
+/* ---------- Hình học phân tử: mô tả ---------- */
+const SHAPES = {
+  '1,0': ['AX', 'đường thẳng', '180°'],
+  '2,0': ['AX₂', 'đường thẳng', '180°'],
+  '3,0': ['AX₃', 'tam giác phẳng', '120°'],
+  '2,1': ['AX₂E', 'gấp khúc (chữ V)', '≈ 118°'],
+  '4,0': ['AX₄', 'tứ diện đều', '109,5°'],
+  '3,1': ['AX₃E', 'chóp tam giác', '≈ 107°'],
+  '2,2': ['AX₂E₂', 'gấp khúc (chữ V)', '≈ 104,5°'],
+  '5,0': ['AX₅', 'lưỡng chóp tam giác', '90° và 120°'],
+  '4,1': ['AX₄E', 'cái bập bênh', '≈ 173° và 102°'],
+  '3,2': ['AX₃E₂', 'chữ T', '≈ 87,5°'],
+  '2,3': ['AX₂E₃', 'đường thẳng', '180°'],
+  '6,0': ['AX₆', 'bát diện đều', '90°'],
+  '5,1': ['AX₅E', 'chóp vuông', '≈ 90°'],
+  '4,2': ['AX₄E₂', 'vuông phẳng', '90°']
+};
+const HYB = { 2: 'sp', 3: 'sp²', 4: 'sp³', 5: 'sp³d', 6: 'sp³d²' };
+function shapeOf(a) {
+  const nb = a.nb.length, sn = nb + a.lp;
+  const s = SHAPES[nb + ',' + a.lp];
+  return { type: s ? s[0] : '', name: s ? s[1] : '', angle: s ? s[2] : '', hyb: HYB[sn] || '', sn };
+}
+
+/* ---------- Công thức: đếm nguyên tử ---------- */
+const SUB = { '₀': '0', '₁': '1', '₂': '2', '₃': '3', '₄': '4', '₅': '5', '₆': '6', '₇': '7', '₈': '8', '₉': '9' };
+function formulaCounts(str) {
+  str = str.replace(/[₀-₉]/g, c => SUB[c]).replace(/\s+/g, '');
+  if (!str) return null;
+  let i = 0;
+  function readNum() { let m = /^\d+/.exec(str.slice(i)); if (m) { i += m[0].length; return +m[0]; } return 1; }
+  function group() {
+    const cnt = {};
+    while (i < str.length && str[i] !== ')') {
+      if (str[i] === '(') {
+        i++; const inner = group(); if (str[i] !== ')') throw new Error('thiếu )'); i++;
+        const k = readNum();
+        for (const e in inner) cnt[e] = (cnt[e] || 0) + inner[e] * k;
+      } else if (/[A-Z]/.test(str[i])) {
+        let sym = str[i]; i++;
+        if (/[a-z]/.test(str[i] || '')) { sym += str[i]; i++; }
+        if (!EL[sym]) throw new Error('nguyên tố ' + sym);
+        const k = readNum(); cnt[sym] = (cnt[sym] || 0) + k;
+      } else throw new Error('ký tự ' + str[i]);
+    }
+    return cnt;
+  }
+  const r = group();
+  if (i < str.length) throw new Error('thừa )');
+  return r;
+}
+function countsKey(c) { return Object.keys(c).sort().map(k => k + c[k]).join(''); }
+function graphCounts(g) { const c = {}; g.atoms.forEach(a => c[a.el] = (c[a.el] || 0) + 1); return c; }
+
+/* ---------- Tra cứu thư viện ---------- */
+const MOLS = LIB.map((e, idx) => {
+  const forms = [{ l: 'Dạng chính', s: e[1] }].concat((e[3] && e[3].forms || []).map(f => ({ l: f[0], s: f[1] })));
+  const o = e[3] || {};
+  return { id: idx, f: e[0], s: e[1], n: e[2], forms, ang: o.ang, tw: o.tw, note: o.note };
+});
+MOLS.forEach(m => {
+  m.key = countsKey(formulaCounts(m.f));
+});
+function lookup(input) {
+  let q = (input || '').trim();
+  if (!q) return { status: 'empty' };
+  q = q.replace(/[₀-₉]/g, c => SUB[c]).replace(/\s+/g, '');
+  const low = q.toLowerCase();
+  let hit = MOLS.filter(m => m.f === q);
+  if (!hit.length) hit = MOLS.filter(m => m.f.toLowerCase() === low);
+  if (!hit.length) {
+    try {
+      const k = countsKey(formulaCounts(q));
+      hit = MOLS.filter(m => m.key === k);
+    } catch (e) { /* bỏ qua */ }
+  }
+  if (!hit.length) return { status: 'none' };
+  if (hit.length === 1) return { status: 'one', mol: hit[0] };
+  return { status: 'many', mols: hit };
+}
+
+root.Chem = {
+  EL, LIB, MOLS, parseSmi, analyze, sameGraph, isConnected, build3D, alignPCA, layout2D, shapeOf,
+  formulaCounts, countsKey, graphCounts, lookup, bondLen, HYB, SHAPES
+};
+if (typeof module !== 'undefined') module.exports = root.Chem;
+})(typeof window !== 'undefined' ? window : globalThis);
+
+</script>
+<script>
+/* ============================================================
+   GAME: Xưởng Lewis
+   ============================================================ */
+(function () {
+'use strict';
+const C = window.Chem;
+const EL = C.EL;
+const $ = (s, r) => (r || document).querySelector(s);
+const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
+const SVGNS = 'http://www.w3.org/2000/svg';
+const REDUCE = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- tiện ích ---------- */
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+function fmtF(f) { return esc(f).replace(/(\d+)/g, '<sub>$1</sub>'); }
+const SUBS = '₀₁₂₃₄₅₆₇₈₉';
+function subs(n) { return String(n).split('').map(d => SUBS[+d]).join(''); }
+function hex2rgb(h) { const n = parseInt(h.slice(1), 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
+function shade(h, a) {
+  const [r, g, b] = hex2rgb(h);
+  const t = a >= 0 ? 255 : 0, k = Math.abs(a);
+  const m = (x) => Math.round(x + (t - x) * k);
+  return 'rgb(' + m(r) + ',' + m(g) + ',' + m(b) + ')';
+}
+function ballBg(el) {
+  const c = EL[el].c;
+  return 'radial-gradient(circle at 34% 30%,' + shade(c, .6) + ',' + c + ' 55%,' + shade(c, -.38) + ')';
+}
+function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+let toastT;
+function toast(msg) {
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 2800);
+}
+function starsStr(n, total) { total = total || 3; let s = ''; for (let i = 0; i < total; i++) s += '<span class="' + (i < n ? 'on' : '') + '">★</span>'; return s; }
+
+/* ============================================================
+   LƯU TRỮ (điểm, sao, bộ sưu tập)
+   ============================================================ */
+const store = { stats: { score: 0, streak: 0, played: 0 }, prog: {}, chDone: {}, sound: true };
+try { const o = JSON.parse(localStorage.getItem('lewislab2') || 'null'); if (o) Object.assign(store, o); } catch (e) { }
+store.stats = store.stats || { score: 0, streak: 0, played: 0 };
+store.prog = store.prog || {}; store.chDone = store.chDone || {};
+const stats = store.stats, prog = store.prog;
+function save() { try { localStorage.setItem('lewislab2', JSON.stringify(store)); } catch (e) { } }
+
+/* ============================================================
+   ÂM THANH (tổng hợp bằng WebAudio, không cần file)
+   ============================================================ */
+let AC = null;
+function ac() {
+  if (!store.sound) return null;
+  if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; } }
+  if (AC.state === 'suspended') AC.resume();
+  return AC;
+}
+function tone(f, d, type, v, delay, slide) {
+  const a = ac(); if (!a) return;
+  const t = a.currentTime + (delay || 0);
+  const o = a.createOscillator(), g = a.createGain();
+  o.type = type || 'sine'; o.frequency.setValueAtTime(f, t);
+  if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, f * slide), t + d);
+  g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v || .15, t + .012); g.gain.exponentialRampToValueAtTime(.0001, t + d);
+  o.connect(g); g.connect(a.destination); o.start(t); o.stop(t + d + .03);
+}
+const SFX = {
+  tick: () => tone(460, .05, 'triangle', .1),
+  place: () => tone(520, .1, 'sine', .2, 0, 1.7),
+  link: () => { tone(280, .06, 'square', .07); tone(620, .12, 'triangle', .16, .05); },
+  erase: () => tone(320, .14, 'sawtooth', .07, 0, .45),
+  wrong: () => { tone(190, .22, 'sawtooth', .11, 0, .7); tone(140, .32, 'sawtooth', .1, .13, .7); },
+  star: (i) => tone(660 * Math.pow(1.26, i), .4, 'triangle', .2),
+  win: () => [523, 659, 784, 1047].forEach((f, i) => tone(f, .3, 'triangle', .17, i * .09)),
+  fan: () => [523, 659, 784, 1047, 1319, 1568].forEach((f, i) => tone(f, .35, 'triangle', .17, i * .1)),
+  lose: () => [392, 330, 262].forEach((f, i) => tone(f, .35, 'sine', .15, i * .16))
+};
+function sfx(n, a) { try { SFX[n](a); } catch (e) { } }
+function showSound() { $('#btnSound').textContent = store.sound ? '🔊' : '🔇'; }
+
+/* ============================================================
+   PHÁO GIẤY
+   ============================================================ */
+const fx = $('#fx'), fctx = fx.getContext('2d');
+let parts = [], fxRaf = 0, FW = 0, FH = 0;
+function fxResize() {
+  const dpr = window.devicePixelRatio || 1; FW = window.innerWidth; FH = window.innerHeight;
+  fx.width = FW * dpr; fx.height = FH * dpr; fctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+const CONF = ['#e5383b', '#3b6fe0', '#f2c94c', '#2fbf71', '#f08c00', '#7b3fa0', '#0e7c86', '#ff6fa5'];
+function confetti(n, fromY) {
+  if (REDUCE) n = Math.round(n / 6);
+  fxResize();
+  for (let i = 0; i < n; i++) {
+    const side = i % 3;
+    const x = side === 0 ? FW * .08 : side === 1 ? FW * .92 : FW * (.3 + Math.random() * .4);
+    const dir = side === 0 ? 1 : side === 1 ? -1 : 0;
+    parts.push({
+      x, y: FH * (fromY || .55), vx: dir * (4 + Math.random() * 9) + (Math.random() - .5) * 6, vy: -(8 + Math.random() * 12),
+      w: 6 + Math.random() * 7, h: 4 + Math.random() * 6, rot: Math.random() * 6.28, vr: (Math.random() - .5) * .45,
+      c: CONF[(Math.random() * CONF.length) | 0], life: 150 + Math.random() * 90, circ: Math.random() < .25
+    });
+  }
+  if (!fxRaf) fxRaf = requestAnimationFrame(fxLoop);
+}
+function fxLoop() {
+  fctx.clearRect(0, 0, FW, FH);
+  parts.forEach(p => {
+    p.vy += .36; p.vx *= .992; p.x += p.vx; p.y += p.vy; p.rot += p.vr; p.life--;
+    fctx.save(); fctx.translate(p.x, p.y); fctx.rotate(p.rot);
+    fctx.globalAlpha = Math.max(0, Math.min(1, p.life / 40));
+    fctx.fillStyle = p.c;
+    if (p.circ) { fctx.beginPath(); fctx.arc(0, 0, p.w / 2, 0, 6.28); fctx.fill(); } else fctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+    fctx.restore();
+  });
+  parts = parts.filter(p => p.life > 0 && p.y < FH + 40);
+  if (parts.length) fxRaf = requestAnimationFrame(fxLoop); else { fxRaf = 0; fctx.clearRect(0, 0, FW, FH); }
+}
+
+/* ============================================================
+   CÁC MÀN CHƠI
+   ============================================================ */
+const CHAPTERS = [
+  { ico: '⚗️', t: 'Khởi động', d: 'Phân tử hai nguyên tử',
+    fs: ['H2', 'F2', 'Cl2', 'Br2', 'I2', 'HF', 'HCl', 'HBr', 'HI', 'ICl', 'O2', 'N2', 'CO'] },
+  { ico: '💧', t: 'Hydride', d: 'Nguyên tử trung tâm nối với các H',
+    fs: ['H2O', 'H2S', 'NH3', 'PH3', 'CH4', 'SiH4', 'BeH2'] },
+  { ico: '🧊', t: 'Hợp chất halogen', d: 'Thiếu octet, tam giác, chóp, tứ diện',
+    fs: ['BeCl2', 'BF3', 'BCl3', 'AlCl3', 'NF3', 'NCl3', 'PCl3', 'OF2', 'Cl2O', 'SCl2', 'CCl4', 'CF4', 'SiCl4', 'CHCl3', 'CH2Cl2', 'CH3Cl'] },
+  { ico: '🔗', t: 'Liên kết đôi và ba', d: 'Xuất hiện liên kết π',
+    fs: ['CO2', 'CS2', 'HCN', 'COCl2', 'CH2O', 'N2O', 'C2H4', 'C2H2', 'C3H6', 'CH3CN', 'HCOOH'] },
+  { ico: '🍋', t: 'Acid chứa oxygen', d: 'Nhóm –OH và liên kết với O',
+    fs: ['HClO', 'HClO2', 'HClO3', 'HClO4', 'HNO2', 'HNO3', 'H2CO3', 'H2SO3', 'H2SO4', 'H3PO3', 'H3PO4'] },
+  { ico: '🌿', t: 'Nhiều nguyên tử trung tâm', d: 'Mạch carbon, alcohol, carboxylic acid',
+    fs: ['H2O2', 'N2H4', 'NH2OH', 'C2H6', 'C3H8', 'CH3OH', 'C2H5OH', 'CH3OCH3', 'CH3NH2', 'CH3CHO', 'CH3COOH', 'CH3COCH3'] },
+  { ico: '⚡', t: 'Ngoại lệ octet', d: 'Mở rộng octet, cộng hưởng, cặp e tự do',
+    fs: ['SO2', 'O3', 'SO3', 'SOCl2', 'POCl3', 'SO2Cl2', 'PCl5', 'SF4', 'ClF3', 'XeF2', 'XeF4', 'SF6', 'BrF5'] }
+];
+CHAPTERS.forEach((c, ci) => {
+  c.mols = c.fs.map(f => { const m = C.MOLS.find(x => x.f === f); if (!m) throw new Error('thiếu ' + f); m.ch = ci; return m; });
+});
+C.MOLS.forEach(m => { m.atomN = C.parseSmi(m.s).atoms.length; if (m.ch === undefined) m.ch = CHAPTERS.length - 1; });
+
+const starsOf = (m) => (prog[m.f] && prog[m.f].s) || 0;
+function chProg(i) {
+  const c = CHAPTERS[i]; let done = 0, st = 0;
+  c.mols.forEach(m => { const s = starsOf(m); if (s > 0) done++; st += s; });
+  return { done, total: c.mols.length, stars: st, max: c.mols.length * 3 };
+}
+function unlocked(i) { if (i === 0) return true; const p = chProg(i - 1); return p.done >= Math.ceil(p.total * .5); }
+function totalStars() { return C.MOLS.reduce((s, m) => s + starsOf(m), 0); }
+function collected() { return C.MOLS.filter(m => starsOf(m) > 0).length; }
+function showStats(flash) {
+  $('#sScore').textContent = stats.score; $('#sStreak').textContent = stats.streak;
+  $('#sStars').textContent = totalStars(); $('#sColl').textContent = collected() + '/' + C.MOLS.length;
+  $('#collCount').textContent = '(' + collected() + '/' + C.MOLS.length + ')';
+  if (flash) { const el = $('#' + flash).parentElement; el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
+}
+
+/* ---------- trang chủ: bản đồ + bộ sưu tập ---------- */
+let openChap = -1;
+function renderMap() {
+  const box = $('#chapters'); box.innerHTML = '';
+  if (openChap < 0) { openChap = CHAPTERS.findIndex((c, i) => unlocked(i) && chProg(i).done < chProg(i).total); if (openChap < 0) openChap = 0; }
+  CHAPTERS.forEach((c, i) => {
+    const p = chProg(i), lock = !unlocked(i), done = p.done === p.total;
+    const d = document.createElement('div');
+    d.className = 'chap' + (lock ? ' locked' : '') + (done ? ' done' : '') + (openChap === i ? ' open' : '');
+    d.innerHTML = '<div class="chap-ico">' + (lock ? '🔒' : c.ico) + '</div><div><h4>Màn ' + (i + 1) + ' · ' + esc(c.t) + '</h4><p>' + esc(c.d) + '</p></div>' +
+      '<div class="bar"><i style="width:' + Math.round(p.done / p.total * 100) + '%"></i></div>' +
+      '<div class="chap-meta"><span>' + p.done + '/' + p.total + ' phân tử · <span class="star">★</span> ' + p.stars + '/' + p.max + '</span>' +
+      (lock ? '<span class="chap-lock">Hoàn thành một nửa màn ' + i + ' để mở</span>' : '<button class="btn mini" type="button">▶ ' + (p.done ? 'Chơi tiếp' : 'Bắt đầu') + '</button>') + '</div>';
+    d.addEventListener('click', (e) => {
+      if (lock) { toast('Màn này đang khóa. Hãy lắp đúng ít nhất ' + Math.ceil(chProg(i - 1).total * .5) + ' phân tử của màn ' + i + '.'); sfx('wrong'); return; }
+      if (e.target.closest('.btn')) { sfx('tick'); startMol(nextInChapter(i, null) || c.mols[0]); return; }
+      openChap = (openChap === i) ? -2 : i; sfx('tick'); renderMap();
+    });
+    box.appendChild(d);
+  });
+  const det = $('#chapDetail');
+  if (openChap >= 0 && unlocked(openChap)) {
+    const c = CHAPTERS[openChap]; det.hidden = false;
+    det.innerHTML = '<div class="eyebrow">Màn ' + (openChap + 1) + '</div><h3 style="font-size:20px;margin-top:2px">' + c.ico + ' ' + esc(c.t) + '</h3><div class="tiles"></div>';
+    const tl = $('.tiles', det);
+    c.mols.forEach(m => {
+      const s = starsOf(m), b = document.createElement('button');
+      b.type = 'button'; b.className = 'tile s' + s;
+      b.innerHTML = '<b>' + fmtF(m.f) + '</b><small>' + esc(m.n) + '</small><div class="st">' + starsStr(s) + '</div>';
+      b.addEventListener('click', () => { sfx('tick'); startMol(m); });
+      tl.appendChild(b);
+    });
+  } else det.hidden = true;
+}
+function renderColl() {
+  const g = $('#collGrid'); g.innerHTML = '';
+  CHAPTERS.forEach((c, ci) => c.mols.forEach(m => {
+    const s = starsOf(m), b = document.createElement('button'); b.type = 'button';
+    if (s > 0) {
+      b.className = 'cell';
+      const gg = C.analyze(C.parseSmi(m.s));
+      b.innerHTML = lewisSVG(gg, true).replace(/ width="\d+"/, '') + '<b>' + fmtF(m.f) + '</b><div class="st">' + starsStr(s) + '</div>';
+      b.addEventListener('click', () => { sfx('tick'); reviewMol(m); });
+    } else {
+      b.className = 'cell lock';
+      b.innerHTML = '<div class="q">?</div><small>Màn ' + (ci + 1) + ' · ' + esc(c.t) + '</small><div class="st">' + starsStr(0) + '</div>';
+      b.disabled = true;
+    }
+    g.appendChild(b);
+  }));
+}
+let curTab = 'free';
+function setTab(t) {
+  curTab = t;
+  $('#tabFree').classList.toggle('on', t === 'free'); $('#tabMap').classList.toggle('on', t === 'map'); $('#tabColl').classList.toggle('on', t === 'coll');
+  $('#freePanel').hidden = t !== 'free'; $('#mapPanel').hidden = t !== 'map'; $('#collPanel').hidden = t !== 'coll';
+  if (t === 'coll') renderColl(); else if (t === 'map') renderMap();
+}
+function goHome(scroll) {
+  if (CH) { clearInterval(CH.timer); CH = null; }
+  AS = null;
+  $('#chResult').hidden = true; $('#asResult').hidden = true;
+  $('#buildCard').hidden = true; $('#result').hidden = true; $('#home').hidden = false; stopLoop();
+  showStats(); setTab(curTab);
+  if (scroll !== false) window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ============================================================
+   MÀN HÌNH NHẬP CÔNG THỨC
+   ============================================================ */
+const POPULAR = ['H2O', 'CO2', 'NH3', 'CH4', 'O2', 'N2', 'HCl', 'SO2', 'C2H4', 'C2H2', 'HCN', 'H2O2', 'BF3', 'CH3COOH', 'HNO3', 'H2SO4', 'PCl5', 'SF6'];
+function chipFor(m) {
+  const b = document.createElement('button');
+  b.type = 'button'; b.className = 'chip'; b.innerHTML = fmtF(m.f); b.title = m.n;
+  b.addEventListener('click', () => startFree(m));
+  return b;
+}
+function buildChips() {
+  const box = $('#chips'); box.innerHTML = '';
+  POPULAR.forEach(f => { const m = C.MOLS.find(x => x.f === f); if (m) box.appendChild(chipFor(m)); });
+}
+function buildAll() {
+  const box = $('#allChips'); box.innerHTML = '';
+  const groups = [['Phân tử 2 nguyên tử', m => m.atomN === 2], ['3 nguyên tử', m => m.atomN === 3], ['4 – 6 nguyên tử', m => m.atomN >= 4 && m.atomN <= 6], ['7 nguyên tử trở lên', m => m.atomN >= 7]];
+  groups.forEach(([t, fn]) => {
+    const lab = document.createElement('div'); lab.className = 'group-label'; lab.textContent = t; box.appendChild(lab);
+    C.MOLS.filter(fn).forEach(m => box.appendChild(chipFor(m)));
+  });
+}
+function onSubmit(e) {
+  e.preventDefault();
+  if (sugActive >= 0 && sugList[sugActive]) { const m = sugList[sugActive]; hideSug(); startFree(m); return; }
+  hideSug();
+  const q = $('#formula').value;
+  const r = C.lookup(q);
+  const msg = $('#startMsg');
+  if (r.status === 'empty') { msg.innerHTML = '<span class="warn">Hãy gõ một công thức hoặc tên chất, ví dụ H2O.</span>'; return; }
+  if (r.status === 'none') {
+    const byName = suggest(q);
+    const near = byName.length ? byName : nearMols(q);
+    msg.innerHTML = '<span class="warn">Chưa có “' + esc(q.trim()) + '” trong thư viện.</span>' +
+      (near.length ? ' Có phải bạn muốn tìm:<div class="pickrow"></div>' : ' Hãy thử công thức khác hoặc chọn trong danh sách bên dưới.');
+    const row = $('.pickrow', msg);
+    if (row) near.forEach(m => { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn'; b.innerHTML = fmtF(m.f) + ' – ' + esc(m.n); b.addEventListener('click', () => startFree(m)); row.appendChild(b); });
+    else { $('#allWrap').hidden = false; $('#toggleAll').textContent = 'Ẩn danh sách đầy đủ'; }
+    return;
+  }
+  if (r.status === 'many') {
+    msg.innerHTML = 'Công thức <b>' + fmtF(q.trim()) + '</b> ứng với nhiều chất. Bạn muốn lắp chất nào?<div class="pickrow"></div>';
+    const row = $('.pickrow', msg);
+    r.mols.forEach(m => { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn'; b.innerHTML = fmtF(m.f) + ' – ' + esc(m.n); b.addEventListener('click', () => startFree(m)); row.appendChild(b); });
+    return;
+  }
+  startFree(r.mol);
+}
+function randomMol() {
+  const lv = $('#level').value;
+  let pool = C.MOLS.filter(m => lv === 'all' || (lv === 'easy' && m.atomN <= 3) || (lv === 'mid' && m.atomN >= 4 && m.atomN <= 6) || (lv === 'hard' && m.atomN >= 7));
+  if (S && pool.length > 1) pool = pool.filter(m => m.id !== S.mol.id);
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+function nextInChapter(ci, cur) {
+  const L = CHAPTERS[ci].mols, n = L.length, start = cur ? L.indexOf(cur) + 1 : 0;
+  for (let k = 0; k < n; k++) { const m = L[(start + k) % n]; if (m !== cur && starsOf(m) === 0) return m; }
+  for (let k = 0; k < n; k++) { const m = L[(start + k) % n]; if (m !== cur && starsOf(m) < 3) return m; }
+  return null;
+}
+
+/* ============================================================
+   TRẠNG THÁI VÁN CHƠI
+   ============================================================ */
+let S = null;
+const MAXTRY = 3;
+const BW = 760, BH = 460;
+function atomR(el) { return el === 'H' ? 17 : (EL[el].per >= 3 ? 25 : 22); }
+
+function makeState(mol) {
+  const forms = mol.forms.map(f => ({ label: f.l, g: C.analyze(C.parseSmi(f.s)) }));
+  const g0 = forms[0].g;
+  return {
+    mol, forms, g0,
+    atoms: g0.atoms.map((a, i) => ({ id: i, el: a.el, placed: false, x: 0, y: 0 })),
+    trayOrder: shuffle(g0.atoms.map((_, i) => i)),
+    bonds: [], tool: null, sel: null, locked: false, hint: 0, mark: {}, tmark: false,
+    tries: 0, lastSig: null, chap: mol.ch, review: false
+  };
+}
+function startMol(mol, fromChallenge, practice, keepAS) {
+  if (!fromChallenge && CH) { clearInterval(CH.timer); CH = null; }
+  if (!keepAS) AS = null;
+  S = makeState(mol); S.practice = !!practice;
+  const c = !!CH, n = S.g0.atoms.length;
+  $('#startMsg').innerHTML = '';
+  $('#home').hidden = true; $('#buildCard').hidden = false; $('#result').hidden = true; $('#chResult').hidden = true; $('#asResult').hidden = true;
+  $('#chapTag').textContent = c ? '⏱ Thử thách 60 giây · đã lắp ' + CH.solved.length
+    : AS ? '📝 Bài kiểm tra' + (AS.name ? ' của ' + AS.name : '') + ' · phân tử ' + (AS.idx + 1) + '/' + AS.mols.length
+    : S.practice ? '🎯 Luyện tập · tự chọn phân tử'
+    : 'Màn ' + (mol.ch + 1) + ' · ' + CHAPTERS[mol.ch].t;
+  $('#molTitle').innerHTML = fmtF(mol.f) + ' <span style="font-weight:500;color:var(--muted);font-size:.62em">– ' + esc(mol.n) + '</span>';
+  $('#molSub').textContent = c ? n + ' nguyên tử. Lắp thật nhanh: đúng +2 giây, sai −3 giây, bỏ qua −5 giây.'
+    : S.practice ? n + ' nguyên tử. Luyện tập: thử bao nhiêu lần tùy thích, không tính điểm. Cần thì bấm “Xem đáp án”.'
+    : n + ' nguyên tử. Bạn có ' + MAXTRY + ' lượt kiểm tra. Lắp càng ít lượt, càng được nhiều sao.';
+  $('#tries').hidden = c; $('#btnHint').hidden = c; $('#chTimerBox').hidden = !c;
+  $('#btnGiveUp').textContent = c ? 'Bỏ qua (−5 giây)' : S.practice ? 'Xem đáp án' : 'Bỏ cuộc, xem đáp án';
+  $('#hintBox').hidden = true; $('#tryMsg').hidden = true; $('#btnHint').textContent = '💡 Gợi ý'; $('#btnHint').disabled = false;
+  $('#btnCheck').disabled = false; $('#btnClear').disabled = false; $('#btnGiveUp').hidden = false;
+  stopLoop(); parts = [];
+  renderTries(); renderTray(); renderBoard(); renderTools(); updateStatus();
+  $('#buildCard').scrollIntoView({ block: 'start', behavior: c ? 'auto' : 'smooth' });
+}
+function renderTries(lostIdx) {
+  if (S.practice) { $('#tries').innerHTML = '<span>🎯 Luyện tập · lần thử: ' + S.tries + '</span>'; return; }
+  let h = '<span>Lượt</span>';
+  for (let i = 0; i < MAXTRY; i++) h += '<span class="heart' + (i < MAXTRY - S.tries ? ' on' : '') + (i === lostIdx ? ' lost' : '') + '">❤️</span>';
+  $('#tries').innerHTML = h;
+}
+function touch() { if (S.tmark) { S.mark = {}; S.tmark = false; $('#tryMsg').hidden = true; } }
+
+/* ---------- khay nguyên tử + que ---------- */
+function renderTray() {
+  const box = $('#atomTray'); box.innerHTML = '';
+  S.trayOrder.forEach(id => {
+    const a = S.atoms[id];
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'ball' + (a.placed ? ' ghost' : '');
+    b.textContent = a.el; b.setAttribute('aria-label', 'Nguyên tử ' + EL[a.el].n);
+    if (!a.placed) { b.style.background = ballBg(a.el); b.style.color = EL[a.el].tc; b.addEventListener('click', () => placeAtom(id)); }
+    else b.disabled = true;
+    box.appendChild(b);
+  });
+}
+function stickSvg(n) {
+  const w = 74, h = 30, ys = n === 1 ? [15] : n === 2 ? [10, 20] : [7, 15, 23], th = n === 1 ? 7 : n === 2 ? 5 : 4;
+  return '<svg width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '">' + ys.map(y =>
+    '<line x1="6" y1="' + y + '" x2="68" y2="' + y + '" stroke="#4b5568" stroke-width="' + th + '" stroke-linecap="round"/>' +
+    '<line x1="6" y1="' + (y - th * .18) + '" x2="68" y2="' + (y - th * .18) + '" stroke="#c2cad8" stroke-width="' + th * .35 + '" stroke-linecap="round"/>').join('') + '</svg>';
+}
+function renderTools() {
+  const box = $('#stickTray');
+  const defs = [[1, 'Que đơn'], [2, 'Que đôi'], [3, 'Que ba'], ['erase', 'Cục tẩy']];
+  box.innerHTML = defs.map(([k, t]) => '<button type="button" class="stick ' + (k === 'erase' ? 'erase' : '') + (S.tool === k ? ' on' : '') + '" data-tool="' + k + '">' +
+    (k === 'erase' ? '<svg width="74" height="30" viewBox="0 0 74 30"><rect x="22" y="5" width="30" height="20" rx="5" fill="#f2a6a8" stroke="#c24a4e" stroke-width="2"/><rect x="22" y="5" width="12" height="20" rx="5" fill="#fff" stroke="#c24a4e" stroke-width="2"/></svg>' : stickSvg(k)) + t + '</button>').join('');
+  $$('.stick', box).forEach(b => b.addEventListener('click', () => {
+    if (S.locked) return;
+    const k = b.dataset.tool === 'erase' ? 'erase' : +b.dataset.tool;
+    S.tool = k; S.sel = null; sfx('tick');
+    renderTools(); renderBoard(); updateStatus();
+  }));
+}
+
+/* ---------- đặt nguyên tử lên bàn ---------- */
+function freeSpot() {
+  const placed = S.atoms.filter(a => a.placed);
+  for (let k = 0; k < 40; k++) {
+    const x = 90 + (k % 5) * 145, y = 95 + Math.floor(k / 5) * 125;
+    if (y > BH - 60) break;
+    if (placed.every(a => Math.hypot(a.x - x, a.y - y) > 70)) return [x, y];
+  }
+  return [60 + Math.random() * (BW - 120), 50 + Math.random() * (BH - 140)];
+}
+function placeAtom(id) {
+  if (S.locked) return;
+  const a = S.atoms[id]; if (a.placed) return;
+  touch();
+  const [x, y] = freeSpot(); a.x = x; a.y = y; a.placed = true; sfx('place');
+  renderTray(); renderBoard(); updateStatus();
+}
+function placeAll() {
+  if (S.locked) return;
+  touch();
+  S.trayOrder.forEach(id => { if (!S.atoms[id].placed) { const [x, y] = freeSpot(); const a = S.atoms[id]; a.x = x; a.y = y; a.placed = true; } });
+  sfx('place');
+  renderTray(); renderBoard(); updateStatus();
+}
+function clearBoard() {
+  if (S.locked) return;
+  touch(); sfx('erase');
+  S.atoms.forEach(a => a.placed = false); S.bonds = []; S.sel = null;
+  renderTray(); renderBoard(); updateStatus();
+}
+
+/* ---------- vẽ bàn lắp ráp ---------- */
+const board = $('#board');
+(function initBoardDefs() {
+  let d = '<defs>';
+  Object.keys(EL).forEach(k => {
+    const c = EL[k].c;
+    d += '<radialGradient id="g-' + k + '" cx="34%" cy="30%" r="75%"><stop offset="0" stop-color="' + shade(c, .6) + '"/><stop offset=".55" stop-color="' + c + '"/><stop offset="1" stop-color="' + shade(c, -.4) + '"/></radialGradient>';
+  });
+  d += '</defs><g id="bondLayer"></g><g id="atomLayer"></g><text id="emptyMsg" x="' + BW / 2 + '" y="' + (BH / 2 - 10) + '" text-anchor="middle" fill="#b2ab98" font-size="19" font-weight="600"></text>';
+  board.innerHTML = d;
+})();
+function bondOffsets(o) { return o === 1 ? [0] : o === 2 ? [-5.5, 5.5] : [-9, 0, 9]; }
+function renderBoard() {
+  let bl = '', al = '';
+  S.bonds.forEach((b, bi) => {
+    const A = S.atoms[b.a], B = S.atoms[b.b];
+    const dx = B.x - A.x, dy = B.y - A.y, L = Math.hypot(dx, dy) || 1, nx = -dy / L, ny = dx / L;
+    const w = b.o === 1 ? 9 : b.o === 2 ? 6 : 5;
+    bondOffsets(b.o).forEach(off => {
+      const x1 = A.x + nx * off, y1 = A.y + ny * off, x2 = B.x + nx * off, y2 = B.y + ny * off;
+      bl += '<line x1="' + x1 + '" y1="' + y1 + '" x2="' + x2 + '" y2="' + y2 + '" stroke="#4b5568" stroke-width="' + w + '" stroke-linecap="round"/>' +
+        '<line x1="' + x1 + '" y1="' + (y1 - w * .18) + '" x2="' + x2 + '" y2="' + (y2 - w * .18) + '" stroke="#c2cad8" stroke-width="' + w * .35 + '" stroke-linecap="round"/>';
+    });
+    if (!S.locked) bl += '<line class="bond-hit" data-bond="' + bi + '" x1="' + A.x + '" y1="' + A.y + '" x2="' + B.x + '" y2="' + B.y + '" stroke="transparent" stroke-width="24"/>';
+  });
+  S.atoms.forEach(a => {
+    if (!a.placed) return;
+    const r = atomR(a.el);
+    let ring = '';
+    if (S.mark[a.id]) ring = '<circle r="' + (r + 6) + '" fill="none" stroke="' + (S.mark[a.id] === 'ok' ? '#18955a' : '#d6393b') + '" stroke-width="4"/>';
+    else if (S.sel === a.id) ring = '<circle class="selring" r="' + (r + 7) + '" fill="none" stroke="#0e7c86" stroke-width="3.2" stroke-dasharray="7 5"/>';
+    al += '<g class="atom" data-atom="' + a.id + '" transform="translate(' + a.x + ',' + a.y + ')">' + ring +
+      '<circle r="' + r + '" fill="url(#g-' + a.el + ')" stroke="rgba(0,0,0,.35)" stroke-width="1.2"/>' +
+      '<text text-anchor="middle" dy=".35em" font-size="' + (a.el === 'H' ? 16 : 20) + '" fill="' + EL[a.el].tc + '">' + a.el + '</text></g>';
+  });
+  $('#bondLayer').innerHTML = bl; $('#atomLayer').innerHTML = al;
+  $('#emptyMsg').textContent = S.atoms.some(a => a.placed) ? '' : 'Bàn trống. Bấm vào các viên bi ở khay bên trái để đặt lên đây.';
+}
+function updateStatus() {
+  const st = $('#status');
+  if (S.locked) { st.hidden = true; return; }
+  st.hidden = false;
+  const left = S.atoms.filter(a => !a.placed).length;
+  let t;
+  if (S.tool === 'erase') t = 'Cục tẩy: bấm vào một que để xóa que, hoặc bấm vào nguyên tử để cất về khay.';
+  else if (S.tool && S.sel !== null) t = 'Đã chọn ' + S.atoms[S.sel].el + '. Bấm nguyên tử thứ hai để nối.';
+  else if (S.tool) t = 'Bấm lần lượt vào hai nguyên tử để nối bằng ' + (S.tool === 1 ? 'que đơn' : S.tool === 2 ? 'que đôi' : 'que ba') + '. Nhấn Esc để bỏ que.';
+  else if (left > 0 && !S.atoms.some(a => a.placed)) t = 'Bước 1: bấm vào các nguyên tử ở khay để đặt lên bàn.';
+  else if (left > 0) t = 'Còn ' + left + ' nguyên tử trong khay. Bạn có thể kéo nguyên tử để sắp xếp.';
+  else t = 'Bước 2: chọn que liên kết ở khay rồi bấm hai nguyên tử để nối. Xong thì bấm Kiểm tra.';
+  st.textContent = t;
+}
+
+/* ---------- tương tác trên bàn ---------- */
+let drag = null;
+function svgPt(e) {
+  const pt = board.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
+  return pt.matrixTransform(board.getScreenCTM().inverse());
+}
+board.addEventListener('pointerdown', e => {
+  if (!S || S.locked) return;
+  const ae = e.target.closest('[data-atom]'), be = e.target.closest('[data-bond]');
+  if (ae) {
+    const id = +ae.dataset.atom, q = svgPt(e), a = S.atoms[id];
+    drag = { id, ox: q.x - a.x, oy: q.y - a.y, sx: e.clientX, sy: e.clientY, moved: false };
+    try { board.setPointerCapture(e.pointerId); } catch (_) { }
+    e.preventDefault();
+  } else if (be) onBondClick(+be.dataset.bond);
+  else if (S.sel !== null) { S.sel = null; renderBoard(); updateStatus(); }
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && S && !S.locked && !$('#buildCard').hidden && (S.tool || S.sel !== null)) { S.tool = null; S.sel = null; renderTools(); renderBoard(); updateStatus(); }
+});
+board.addEventListener('pointermove', e => {
+  if (!drag) return;
+  if (!drag.moved && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 6) drag.moved = true;
+  if (drag.moved) {
+    const q = svgPt(e), a = S.atoms[drag.id];
+    a.x = Math.max(28, Math.min(BW - 28, q.x - drag.ox)); a.y = Math.max(28, Math.min(BH - 28, q.y - drag.oy));
+    renderBoard();
+  }
+});
+function endDrag() { if (!drag) return; const d = drag; drag = null; if (!d.moved) onAtomClick(d.id); }
+board.addEventListener('pointerup', endDrag);
+board.addEventListener('pointercancel', () => { drag = null; });
+
+function onAtomClick(id) {
+  if (S.locked) return;
+  if (S.tool === 'erase') {
+    touch(); sfx('erase');
+    S.atoms[id].placed = false; S.bonds = S.bonds.filter(b => b.a !== id && b.b !== id); S.sel = null;
+    renderTray(); renderBoard(); updateStatus(); return;
+  }
+  if (!S.tool) { toast('Hãy chọn một que liên kết ở khay bên trái trước.'); return; }
+  if (S.sel === null) { S.sel = id; sfx('tick'); }
+  else if (S.sel === id) S.sel = null;
+  else {
+    touch();
+    const a = S.sel, b = id;
+    const ex = S.bonds.find(x => (x.a === a && x.b === b) || (x.a === b && x.b === a));
+    if (ex) ex.o = S.tool; else S.bonds.push({ a, b, o: S.tool });
+    S.sel = null; sfx('link');
+  }
+  renderBoard(); updateStatus();
+}
+function onBondClick(bi) {
+  if (S.locked) return;
+  if (S.tool === 'erase') { touch(); sfx('erase'); S.bonds.splice(bi, 1); renderBoard(); updateStatus(); }
+  else if (S.tool) { touch(); S.bonds[bi].o = S.tool; sfx('link'); renderBoard(); }
+}
+
+/* ---------- gợi ý ---------- */
+function onHint() {
+  if (S.locked) return;
+  const g = S.g0;
+  if (S.hint === 0) {
+    S.hint = 1;
+    $('#hintBox').innerHTML = '💡 <b>Gợi ý 1:</b> tổng số electron hóa trị là <b>' + g.ve + '</b> (' + g.ve + ' e ≈ ' + Math.ceil(g.ve / 2) + ' cặp e). Nguyên tử có nhiều liên kết nhất là <b>' + g.atoms[g.root].el + '</b>.';
+    $('#hintBox').hidden = false; $('#btnHint').textContent = S.practice ? '💡 Gợi ý thêm' : '💡 Gợi ý thêm (−1 sao)';
+  } else if (S.hint === 1) {
+    S.hint = 2;
+    const cnt = { 1: 0, 2: 0, 3: 0 }; g.bonds.forEach(b => cnt[b.o]++);
+    $('#hintBox').innerHTML += '<br>💡 <b>Gợi ý 2:</b> cần dùng <b>' + cnt[1] + '</b> que đơn, <b>' + cnt[2] + '</b> que đôi, <b>' + cnt[3] + '</b> que ba.';
+    $('#btnHint').disabled = true;
+  }
+}
+
+/* ============================================================
+   KIỂM TRA (3 lượt)
+   ============================================================ */
+function playerGraph() {
+  return { atoms: S.atoms.map(a => ({ el: a.el })), bonds: S.bonds.map(b => ({ a: b.a, b: b.b, o: b.o })) };
+}
+function bondSums(G) {
+  const s = new Array(G.atoms.length).fill(0);
+  G.bonds.forEach(b => { s[b.a] += b.o; s[b.b] += b.o; });
+  return s;
+}
+function mismatches(pg, form) {
+  const ps = bondSums(pg), exp = {};
+  form.g.atoms.forEach(a => { const k = a.el + ':' + a.bs; exp[k] = (exp[k] || 0) + 1; });
+  const bad = [];
+  pg.atoms.forEach((a, i) => { const k = a.el + ':' + ps[i]; if (exp[k] > 0) exp[k]--; else bad.push(i); });
+  return bad;
+}
+function sigOf() { return S.bonds.map(b => Math.min(b.a, b.b) + '-' + Math.max(b.a, b.b) + '-' + b.o).sort().join('|'); }
+
+function onCheck(giveUp) {
+  if (CH) return chCheck(giveUp);
+  if (S.locked) return;
+  const left = S.atoms.filter(a => !a.placed).length;
+  if (!giveUp) {
+    if (left) { toast('Còn ' + left + ' nguyên tử trong khay. Hãy đặt hết lên bàn rồi kiểm tra.'); return; }
+    if (!S.bonds.length) { toast('Bạn chưa nối que liên kết nào.'); return; }
+    if (sigOf() === S.lastSig) { toast('Cách nối chưa thay đổi so với lượt trước. Hãy sửa lại rồi kiểm tra' + (S.practice ? '.' : ' (lượt này chưa bị trừ).')); return; }
+  }
+  const ready = !left && S.bonds.length > 0;
+  const pg = playerGraph();
+  let matched = -1;
+  if (ready) S.forms.forEach((f, i) => { if (matched < 0 && C.sameGraph(pg, f.g)) matched = i; });
+  const ok = matched >= 0;
+  if (!giveUp) { S.tries++; S.lastSig = sigOf(); }
+  S.mark = {};
+  const reasons = [];
+  if (ok) S.atoms.forEach(a => S.mark[a.id] = 'ok');
+  else if (ready) {
+    let best = null;
+    S.forms.forEach(f => { const bad = mismatches(pg, f); if (!best || bad.length < best.length) best = bad; });
+    S.atoms.forEach(a => S.mark[a.id] = best.includes(a.id) ? 'bad' : 'ok');
+    if (!C.isConnected(pg)) reasons.push('Các nguyên tử chưa nối liền thành một phân tử duy nhất.');
+    if (best.length) {
+      reasons.push(best.length + ' nguyên tử có số liên kết chưa hợp lý (viền đỏ trên bàn).');
+      if (best.some(i => S.atoms[i].el === 'H')) reasons.push('Nhớ rằng H chỉ tạo đúng 1 liên kết.');
+    } else reasons.push('Số liên kết của từng nguyên tử đã khớp, nhưng cách nối các nguyên tử với nhau chưa đúng. Hãy xem lại nguyên tử nào nối với nguyên tử nào.');
+    const ptot = S.bonds.reduce((s, b) => s + b.o, 0), tots = S.forms.map(f => f.g.bonds.reduce((s, b) => s + b.o, 0));
+    if (ptot > Math.max.apply(null, tots)) reasons.push('Bạn đang dùng nhiều que hơn cần thiết (tính cả que đôi, que ba).');
+    else if (ptot < Math.min.apply(null, tots)) reasons.push('Bạn đang dùng ít que hơn cần thiết (tính cả que đôi, que ba).');
+  }
+  if (ok) return finish(true, matched, reasons);
+  if (giveUp || (!S.practice && S.tries >= MAXTRY)) return finish(false, -1, reasons, giveUp);
+  // còn lượt: báo lỗi nhưng chưa lộ đáp án
+  S.tmark = true;
+  sfx('wrong'); renderTries(S.practice ? -1 : MAXTRY - S.tries);
+  const bw = $('#boardWrap'); bw.classList.remove('shake'); void bw.offsetWidth; bw.classList.add('shake');
+  const tm = $('#tryMsg');
+  tm.innerHTML = '<b>Chưa chính xác. ' + (S.practice ? 'Hãy sửa lại và thử tiếp.' : 'Bạn còn ' + (MAXTRY - S.tries) + ' lượt.') + '</b><ul>' + reasons.map(r => '<li>' + esc(r) + '</li>').join('') + '</ul>';
+  tm.hidden = false;
+  renderBoard(); updateStatus();
+  tm.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}
+
+function finish(ok, matched, reasons, giveUp) {
+  S.locked = true; S.tool = null; S.sel = null;
+  const m = S.mol, old = starsOf(m), prac = !!S.practice;
+  const stars = ok ? Math.max(1, (S.tries === 1 ? 3 : S.tries === 2 ? 2 : 1) - (S.hint > 0 ? 1 : 0)) : 0;
+  let gain = 0, isNew = false, chapDone = false;
+  if (!prac) {
+    if (ok && stars > old) { gain = 10 * (stars - old) + (old === 0 ? 5 : 0); isNew = old === 0; }
+    if (ok) { prog[m.f] = { s: Math.max(old, stars) }; stats.streak++; } else stats.streak = 0;
+    stats.score += gain; stats.played++;
+    if (ok) { const p = chProg(m.ch); if (p.done === p.total && !store.chDone[m.ch]) { store.chDone[m.ch] = 1; chapDone = true; } }
+    save(); showStats(ok ? 'sScore' : 'sStreak');
+  }
+  if (AS) AS.results.push({ f: m.f, n: m.n, ok, stars, tries: S.tries, hint: S.hint, give: !!giveUp });
+  renderTools(); renderBoard(); updateStatus(); renderTray(); renderTries();
+  $('#btnCheck').disabled = true; $('#btnClear').disabled = true; $('#btnHint').disabled = true; $('#btnGiveUp').hidden = true;
+  $('#tryMsg').hidden = true;
+
+  let cls, html;
+  if (ok && prac) {
+    cls = 'verdict ok';
+    html = '<div class="big">🎉</div><div><h3>Chính xác! Bạn lắp đúng ' + fmtF(m.f) + ' sau ' + S.tries + ' lần thử.</h3>' +
+      '<span class="badge">🎯 Luyện tập: không tính điểm và sao</span>' +
+      '<div style="margin-top:6px">' + (matched > 0 ? 'Bạn chọn <b>' + esc(S.forms[matched].label.toLowerCase()) + '</b>, đây cũng là một cách biểu diễn được chấp nhận. ' : '') +
+      'Muốn lấy sao? Bấm “Chơi lại” rồi chọn chế độ Kiểm tra ở trang chủ.</div></div>';
+    sfx('win'); confetti(60);
+  } else if (ok) {
+    cls = 'verdict ok';
+    html = '<div class="big">🎉</div><div><h3>Chính xác! Bạn lắp đúng ' + fmtF(m.f) + ' ở lượt ' + S.tries + '.</h3>' +
+      '<div class="stars">' + starsStr(stars) + '</div>' +
+      (isNew ? '<span class="badge gold">✨ Phân tử mới vào bộ sưu tập</span>' : (stars > old ? '<span class="badge gold">⬆ Tăng từ ' + old + ' lên ' + stars + ' sao</span>' : '')) +
+      (gain > 0 ? '<span class="badge">+' + gain + ' điểm</span>' : '<span class="badge">Không cộng thêm điểm: bạn đã đạt số sao này rồi</span>') +
+      (S.hint ? '<span class="badge">Đã dùng gợi ý (−1 sao)</span>' : '') +
+      '<div style="margin-top:6px">' + (matched > 0 ? 'Bạn chọn <b>' + esc(S.forms[matched].label.toLowerCase()) + '</b>, đây cũng là một cách biểu diễn được chấp nhận. ' : '') +
+      (stats.streak > 1 ? 'Chuỗi ' + stats.streak + ' lần đúng liên tiếp!' : '') + '</div>' +
+      (chapDone ? '<div class="note" style="background:#fff6d6;border-color:#f0cf6a;margin-top:8px">🏆 <b>Hoàn thành Màn ' + (m.ch + 1) + ' · ' + esc(CHAPTERS[m.ch].t) + '!</b> Bạn đã sưu tầm đủ ' + CHAPTERS[m.ch].mols.length + ' phân tử.</div>' : '') + '</div>';
+    sfx('win');
+    for (let i = 0; i < stars; i++) setTimeout(() => sfx('star', i), 450 + i * 260);
+    confetti(stars === 3 ? 190 : stars === 2 ? 120 : 70);
+    if (chapDone) setTimeout(() => { sfx('fan'); confetti(260, .4); }, 1100);
+  } else {
+    cls = 'verdict no';
+    html = '<div class="big">🧪</div><div><h3>' + (giveUp ? 'Bạn đã xem đáp án' : 'Hết ' + MAXTRY + ' lượt') + '</h3>' +
+      (reasons.length ? '<ul>' + reasons.map(r => '<li>' + esc(r) + '</li>').join('') + '</ul>' : '') +
+      '<div style="margin-top:6px">Đáp án đúng ở bên dưới. Hãy quan sát' + (AS ? '.' : ' rồi bấm “Chơi lại” để thử lại nhé.') + '</div></div>';
+    sfx('lose');
+  }
+  showResult(ok ? matched : 0, cls, html, true);
+}
+
+/* ============================================================
+   CHẾ ĐỘ TỰ CHỌN: luyện tập / kiểm tra, gợi ý khi gõ, bài được giao
+   ============================================================ */
+let AS = null;                 // bài kiểm tra được giao đang làm
+let freeMode = store.freeMode === 'test' ? 'test' : 'practice';
+let pendingAssign = null;
+function startFree(m) { startMol(m, false, freeMode === 'practice'); }
+function showMode() {
+  $$('#modeSeg button').forEach(b => b.classList.toggle('on', b.dataset.mode === freeMode));
+  $('#modeDesc').innerHTML = freeMode === 'practice'
+    ? '🎯 <b>Luyện tập</b>: thử bao nhiêu lần tùy thích, xem đáp án bất cứ lúc nào, <u>không</u> tính điểm và sao.'
+    : '📝 <b>Kiểm tra</b>: có 3 lượt thử, được 1–3 sao và vào bộ sưu tập như các màn chơi.';
+}
+
+/* ---------- gợi ý khi gõ ---------- */
+let sugList = [], sugActive = -1;
+function normQ(s) { return s.toLowerCase().replace(/[₀-₉]/g, c => SUBS.indexOf(c)).replace(/[\s\-_]+/g, ''); }
+function lev(a, b) {
+  const m = a.length, n = b.length; if (!m) return n; if (!n) return m;
+  let prev = Array.from({ length: n + 1 }, (_, j) => j);
+  for (let i = 1; i <= m; i++) {
+    const cur = [i];
+    for (let j = 1; j <= n; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    prev = cur;
+  }
+  return prev[n];
+}
+function suggest(q) {
+  const nq = normQ(q); if (!nq) return [];
+  const out = [];
+  C.MOLS.forEach(m => {
+    const f = m.f.toLowerCase(), nm = normQ(m.n);
+    let sc = -1;
+    if (f === nq) sc = 100; else if (f.startsWith(nq)) sc = 80; else if (nm.startsWith(nq)) sc = 70;
+    else if (f.includes(nq)) sc = 50; else if (nm.includes(nq)) sc = 40;
+    if (sc >= 0) out.push({ m, sc });
+  });
+  const r = C.lookup(q);
+  const iso = r.status === 'one' ? [r.mol] : r.status === 'many' ? r.mols : [];
+  iso.forEach(m => { if (!out.some(o => o.m === m)) out.push({ m, sc: 60 }); });
+  return out.sort((x, y) => y.sc - x.sc || x.m.f.length - y.m.f.length).slice(0, 8).map(o => o.m);
+}
+function nearMols(q) {
+  const nq = normQ(q); if (nq.length < 2) return [];
+  return C.MOLS.map(m => ({ m, d: lev(m.f.toLowerCase(), nq) })).filter(o => o.d <= 2).sort((x, y) => x.d - y.d).slice(0, 5).map(o => o.m);
+}
+function hideSug() { sugList = []; sugActive = -1; const u = $('#sug'); u.hidden = true; u.innerHTML = ''; $('#formula').setAttribute('aria-expanded', 'false'); }
+function renderSug() {
+  const u = $('#sug');
+  if (!sugList.length) { hideSug(); return; }
+  u.innerHTML = sugList.map((m, i) => '<li role="option" data-i="' + i + '" class="' + (i === sugActive ? 'on' : '') + '"><b>' + fmtF(m.f) + '</b><span>' + esc(m.n) + '</span></li>').join('');
+  u.hidden = false; $('#formula').setAttribute('aria-expanded', 'true');
+}
+function onFormulaInput() {
+  $('#startMsg').innerHTML = '';
+  sugList = suggest($('#formula').value); sugActive = -1; renderSug();
+}
+function onFormulaKey(e) {
+  if (!sugList.length) return;
+  if (e.key === 'ArrowDown') { e.preventDefault(); sugActive = (sugActive + 1) % sugList.length; renderSug(); }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); sugActive = (sugActive - 1 + sugList.length) % sugList.length; renderSug(); }
+  else if (e.key === 'Escape') hideSug();
+}
+
+/* ---------- bài được giao ---------- */
+function parseCodes(str) {
+  let s = String(str || '').trim();
+  try { s = decodeURIComponent(s); } catch (e) { }
+  const parts = s.split(/[\s,;|+]+/).filter(Boolean).slice(0, 20);
+  const mols = [], bad = [];
+  parts.forEach(p => {
+    let m = C.MOLS.find(x => x.f.toLowerCase() === p.toLowerCase());
+    if (!m) { const r = C.lookup(p); if (r.status === 'one') m = r.mol; else if (r.status === 'many') m = r.mols[0]; }
+    if (m) { if (!mols.includes(m)) mols.push(m); } else bad.push(p);
+  });
+  return { mols, bad };
+}
+function showAssign(mols, bad) {
+  pendingAssign = mols;
+  const box = $('#assignCard'); box.hidden = false;
+  box.innerHTML = '<div class="eyebrow">Bài kiểm tra được giao</div><h3 style="font-size:21px;margin:2px 0 8px">Bạn được giao ' + mols.length + ' phân tử</h3>' +
+    '<div class="chips">' + mols.map(m => '<span class="chip" style="cursor:default">' + fmtF(m.f) + '</span>').join('') + '</div>' +
+    (bad.length ? '<div class="muted" style="margin-top:6px">Không nhận ra: ' + esc(bad.join(', ')) + '</div>' : '') +
+    '<div class="assign-row"><input id="asName" type="text" maxlength="40" placeholder="Nhập họ tên của bạn" value="' + esc(store.name || '') + '" aria-label="Họ tên">' +
+    '<button class="btn primary" id="btnAsStart" type="button">▶ Bắt đầu làm bài</button><button class="linkbtn" id="btnAsSkip" type="button">Bỏ qua</button></div>' +
+    '<div class="muted">Mỗi phân tử có 3 lượt thử và tính sao. Làm xong sẽ có bảng kết quả để gửi cho giáo viên.</div>';
+  $('#btnAsStart').addEventListener('click', () => {
+    const nm = $('#asName').value.trim();
+    if (!nm) { toast('Hãy nhập họ tên để giáo viên nhận ra bài của bạn.'); $('#asName').focus(); return; }
+    store.name = nm; save(); startAssignment(pendingAssign, nm);
+  });
+  $('#btnAsSkip').addEventListener('click', () => { box.hidden = true; pendingAssign = null; });
+  $('#asName').addEventListener('keydown', e => { if (e.key === 'Enter') $('#btnAsStart').click(); });
+  box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  setTimeout(() => $('#asName').focus(), 350);
+}
+function startAssignment(mols, name) {
+  AS = { mols, idx: 0, name, results: [] };
+  startMol(mols[0], false, false, true);
+}
+function copyText(t, okMsg) {
+  const done = () => toast(okMsg || 'Đã sao chép.');
+  if (navigator.clipboard && window.isSecureContext) { navigator.clipboard.writeText(t).then(done, () => fallbackCopy(t, done)); }
+  else fallbackCopy(t, done);
+}
+function fallbackCopy(t, done) {
+  const ta = document.createElement('textarea'); ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); done(); } catch (e) { toast('Hãy tự chọn và sao chép nội dung.'); }
+  document.body.removeChild(ta);
+}
+function showAssignResult() {
+  const R_ = AS.results, N = AS.mols.length, maxS = N * 3, got = R_.reduce((s, r) => s + r.stars, 0), okN = R_.filter(r => r.ok).length;
+  const d = new Date(), pad = n => String(n).padStart(2, '0');
+  const lines = ['XƯỞNG LEWIS - KẾT QUẢ BÀI KIỂM TRA', 'Học sinh: ' + AS.name, 'Ngày: ' + pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + '/' + d.getFullYear()];
+  R_.forEach((r, i) => lines.push((i + 1) + '. ' + r.f + ' (' + r.n.replace(/ \(.*\)$/, '') + '): ' + r.stars + '/3 sao, ' +
+    (r.ok ? 'đúng ở lượt ' + r.tries : (r.give ? 'bỏ cuộc' : 'chưa đúng sau ' + r.tries + ' lượt')) + (r.hint ? ', có dùng gợi ý' : '')));
+  lines.push('Tổng: ' + got + '/' + maxS + ' sao, đúng ' + okN + '/' + N + ' phân tử');
+  const text = lines.join('\n');
+  $('#buildCard').hidden = true; $('#result').hidden = true; $('#home').hidden = true; stopLoop();
+  const box = $('#asResult'); box.hidden = false;
+  box.innerHTML = '<div class="card chres"><div class="eyebrow">Hoàn thành bài kiểm tra</div><h2>Kết quả của ' + esc(AS.name) + '</h2>' +
+    '<div class="chstats"><div><b>' + got + '/' + maxS + '</b><span>sao</span></div><div><b>' + okN + '/' + N + '</b><span>phân tử đúng</span></div></div>' +
+    '<table class="shape astable"><tr><th>#</th><th>Phân tử</th><th>Kết quả</th><th>Lượt</th></tr>' +
+    R_.map((r, i) => '<tr><td>' + (i + 1) + '</td><td><b>' + fmtF(r.f) + '</b><br><small class="muted">' + esc(r.n) + '</small></td><td><span class="stars sm">' + starsStr(r.stars) + '</span>' +
+      (r.ok ? '' : '<br><small class="muted">' + (r.give ? 'bỏ cuộc' : 'chưa đúng') + '</small>') + '</td><td>' + r.tries + (r.hint ? ' · gợi ý' : '') + '</td></tr>').join('') + '</table>' +
+    '<p class="muted" style="margin:14px 0 6px">Sao chép nội dung dưới đây gửi cho giáo viên (hoặc chụp màn hình bảng kết quả):</p>' +
+    '<textarea id="asText" readonly rows="' + (lines.length + 1) + '">' + esc(text) + '</textarea>' +
+    '<div class="next"><button class="btn primary" id="btnAsCopy" type="button">📋 Sao chép kết quả</button><button class="btn" id="btnAsAgain" type="button">↻ Làm lại bài</button><button class="btn" id="btnAsHome" type="button">🏠 Về trang chủ</button></div></div>';
+  $('#btnAsCopy').addEventListener('click', () => copyText(text, 'Đã sao chép kết quả. Hãy dán gửi cho giáo viên.'));
+  $('#btnAsAgain').addEventListener('click', () => { $('#asResult').hidden = true; startAssignment(AS.mols, AS.name); });
+  $('#btnAsHome').addEventListener('click', () => goHome(true));
+  $('#asText').addEventListener('focus', e => e.target.select());
+  const tot = got / maxS; sfx(tot >= .67 ? 'fan' : tot > 0 ? 'win' : 'lose'); if (tot >= .67) confetti(200);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function loadFromHash() {
+  const h = (location.hash || '').replace(/^#/, '');
+  if (!h) return;
+  const p = parseCodes(h);
+  if (!p.mols.length) return;
+  if (!$('#buildCard').hidden || !$('#result').hidden) goHome(false);
+  setTab('free'); showAssign(p.mols, p.bad);
+}
+
+/* ---------- giáo viên tạo bài ---------- */
+function onGen(e) {
+  e.preventDefault();
+  const p = parseCodes($('#genIn').value), out = $('#genOut');
+  if (!p.mols.length) { out.innerHTML = '<div class="warn" style="color:var(--bad);font-weight:600;margin-top:8px">Chưa nhận ra công thức nào. Hãy kiểm tra lại cách gõ.</div>'; return; }
+  const code = p.mols.map(m => m.f).join(',');
+  const base = location.href.split('#')[0], link = base + '#' + code, isFile = location.protocol === 'file:';
+  out.innerHTML = '<div class="gen">' +
+    '<div class="chips">' + p.mols.map(m => '<span class="chip" style="cursor:default" title="' + esc(m.n) + '">' + fmtF(m.f) + '</span>').join('') + '</div>' +
+    (p.bad.length ? '<div class="muted">Không nhận ra: ' + esc(p.bad.join(', ')) + '</div>' : '') +
+    '<div class="genrow"><span>Mã bài</span><input readonly value="' + esc(code) + '" id="genCode"><button class="btn mini" type="button" id="btnCopyCode">Sao chép</button></div>' +
+    '<div class="genrow"><span>Đường dẫn</span><input readonly value="' + esc(link) + '" id="genLink"><button class="btn mini" type="button" id="btnCopyLink">Sao chép</button></div>' +
+    '<div class="note">' + (isFile
+      ? 'Bạn đang mở file từ máy tính nên đường dẫn chỉ dùng được trên máy này. Nếu gửi <b>file HTML</b> cho học sinh, hãy dặn các em: mở file, vào tab “Tự chọn phân tử”, dán <b>mã bài</b> vào ô “Mã bài”. Nếu đăng file lên web thì dùng đường dẫn của trang đó, thêm <b>#' + esc(code) + '</b> ở cuối.'
+      : 'Gửi đường dẫn này cho học sinh: mở lên là vào thẳng bài kiểm tra ' + p.mols.length + ' phân tử.') + '</div></div>';
+  $('#btnCopyCode').addEventListener('click', () => copyText(code, 'Đã sao chép mã bài.'));
+  $('#btnCopyLink').addEventListener('click', () => copyText(link, 'Đã sao chép đường dẫn.'));
+}
+function onCode(e) {
+  e.preventDefault();
+  const p = parseCodes($('#codeIn').value), msg = $('#codeMsg');
+  if (!p.mols.length) { msg.innerHTML = '<span style="color:var(--bad);font-weight:600">Chưa nhận ra mã bài. Hãy dán đúng mã giáo viên gửi, ví dụ C2H2,C2H4,CH4.</span>'; return; }
+  msg.textContent = ''; showAssign(p.mols, p.bad);
+}
+
+/* ============================================================
+   THỬ THÁCH 60 GIÂY
+   ============================================================ */
+let CH = null;
+const CH_MS = 60000;
+function showBest() { const b = store.best; $('#chBest').textContent = b ? (b.n + ' phân tử · ' + b.pts + ' điểm') : 'chưa có'; }
+function chPick() {
+  const n = CH.solved.length, lim = n < 3 ? 3 : n < 6 ? 5 : n < 10 ? 7 : 12;
+  let pool = C.MOLS.filter(m => m.atomN <= lim && !CH.used.has(m.id));
+  if (!pool.length) { CH.used.clear(); pool = C.MOLS.filter(m => m.atomN <= lim); }
+  const m = pool[(Math.random() * pool.length) | 0]; CH.used.add(m.id); return m;
+}
+function startChallenge() {
+  if (CH) { clearInterval(CH.timer); CH = null; }
+  $('#home').hidden = true; $('#result').hidden = true; $('#chResult').hidden = true; $('#buildCard').hidden = true;
+  const cd = $('#cdown'), num = $('#cdNum'), seq = ['3', '2', '1', 'Bắt đầu!'];
+  cd.hidden = false; let k = 0;
+  (function step() {
+    if (k >= seq.length) { cd.hidden = true; chBegin(); return; }
+    num.textContent = seq[k]; num.classList.remove('pulse'); void num.offsetWidth; num.classList.add('pulse');
+    if (k < 3) sfx('tick'); else sfx('win');
+    k++; setTimeout(step, k === seq.length ? 650 : 800);
+  })();
+}
+function chBegin() {
+  CH = { solved: [], pts: 0, used: new Set(), end: performance.now() + CH_MS, lastSec: 60, timer: 0 };
+  startMol(chPick(), true);
+  chTick();
+  CH.timer = setInterval(chTick, 100);
+}
+function chTick() {
+  if (!CH) return;
+  const left = (CH.end - performance.now()) / 1000, sec = Math.max(0, Math.ceil(left));
+  $('#chSec').textContent = sec;
+  $('#chFill').style.width = Math.max(0, Math.min(100, left / 60 * 100)) + '%';
+  $('#chTimerBox').classList.toggle('urgent', sec <= 10);
+  if (sec !== CH.lastSec) { CH.lastSec = sec; if (sec <= 10 && sec > 0) sfx('tick'); }
+  if (left <= 0) endChallenge();
+}
+function chAdjust(ms, label, good) {
+  CH.end = Math.min(CH.end + ms, performance.now() + 75000);
+  const f = $('#chFlash'); f.textContent = label; f.className = 'chflash ' + (good ? 'good' : 'bad');
+  void f.offsetWidth; f.classList.add('show'); chTick();
+}
+function chCheck(giveUp) {
+  if (!CH || S.locked) return;
+  if (giveUp) { chAdjust(-5000, '−5 giây (bỏ qua)', false); sfx('wrong'); if (CH) startMol(chPick(), true); return; }
+  const left = S.atoms.filter(a => !a.placed).length;
+  if (left) { toast('Còn ' + left + ' nguyên tử trong khay.'); return; }
+  if (!S.bonds.length) { toast('Bạn chưa nối que liên kết nào.'); return; }
+  if (sigOf() === S.lastSig) { toast('Cách nối chưa thay đổi. Hãy sửa lại rồi kiểm tra.'); return; }
+  const pg = playerGraph();
+  let ok = false;
+  S.forms.forEach(f => { if (!ok && C.sameGraph(pg, f.g)) ok = true; });
+  if (ok) {
+    const pts = 5 + 2 * S.atoms.length;
+    CH.pts += pts; CH.solved.push(S.mol.f);
+    sfx('win'); confetti(REDUCE ? 8 : 40, .6);
+    chAdjust(2000, '+2 giây · +' + pts + ' điểm', true);
+    startMol(chPick(), true);
+  } else {
+    S.lastSig = sigOf();
+    let best = null;
+    S.forms.forEach(f => { const bad = mismatches(pg, f); if (!best || bad.length < best.length) best = bad; });
+    S.mark = {}; S.atoms.forEach(x => S.mark[x.id] = best.includes(x.id) ? 'bad' : 'ok'); S.tmark = true;
+    sfx('wrong'); const bw = $('#boardWrap'); bw.classList.remove('shake'); void bw.offsetWidth; bw.classList.add('shake');
+    renderBoard();
+    chAdjust(-3000, '−3 giây (sai)', false);
+  }
+}
+function endChallenge() {
+  if (!CH) return;
+  clearInterval(CH.timer); const run = CH; CH = null;
+  if (S) S.locked = true;
+  $('#buildCard').hidden = true;
+  const old = store.best, rec = run.pts > 0 && (!old || run.pts > old.pts);
+  if (rec) store.best = { n: run.solved.length, pts: run.pts };
+  save(); showBest();
+  const best = store.best;
+  $('#chResult').hidden = false;
+  $('#chResult').innerHTML = '<div class="card chres"><div class="eyebrow">Hết giờ!</div>' +
+    '<h2>⏱ Bạn lắp được ' + run.solved.length + ' phân tử</h2>' +
+    '<div class="chstats"><div><b>' + run.pts + '</b><span>điểm</span></div><div><b>' + run.solved.length + '</b><span>phân tử</span></div>' +
+    '<div><b>' + (best ? best.pts : 0) + '</b><span>kỷ lục (điểm)</span></div></div>' +
+    (rec ? '<div style="text-align:center"><span class="badge gold">🏆 Kỷ lục mới!</span></div>' : '') +
+    '<div class="chips-title"><span>Phân tử đã lắp đúng</span></div><div class="chips">' +
+    (run.solved.length ? run.solved.map(f => '<span class="chip" style="cursor:default">' + fmtF(f) + '</span>').join('') : '<span class="muted">Chưa có phân tử nào. Lần sau bạn sẽ làm được!</span>') + '</div>' +
+    '<div class="next"><button class="btn primary" id="btnChAgain" type="button">↻ Thử thách lại</button><button class="btn" id="btnChHome" type="button">🏠 Về trang chủ</button></div></div>';
+  $('#btnChAgain').addEventListener('click', startChallenge);
+  $('#btnChHome').addEventListener('click', () => goHome(true));
+  if (rec) { sfx('fan'); confetti(260, .4); } else if (run.solved.length >= 3) { sfx('win'); confetti(80); } else sfx('lose');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ============================================================
+   KẾT QUẢ
+   ============================================================ */
+const R = { form: 0, mode: 'lewis' };
+function showResult(formIdx, cls, html, afterPlay) {
+  $('#result').hidden = false;
+  const v = $('#verdict'); v.className = cls; v.innerHTML = html;
+  let nx = null, label = '';
+  if (AS && afterPlay) {
+    if (AS.idx + 1 < AS.mols.length) { nx = AS.mols[AS.idx + 1]; label = 'Phân tử tiếp theo (' + (AS.idx + 2) + '/' + AS.mols.length + ') →'; }
+    else { nx = { end: true }; label = '📋 Xem kết quả bài kiểm tra →'; }
+  } else if (afterPlay && !S.review && !S.practice) {
+    nx = nextInChapter(S.chap, S.mol); label = nx ? 'Tiếp theo trong màn: ' + nx.f + ' →' : '';
+  }
+  const bn = $('#btnChapNext');
+  bn.hidden = !nx; bn.textContent = label; bn._mol = nx;
+  $('#btnReplay').hidden = !!AS; $('#btnNext').hidden = !!AS;
+  setForm(formIdx);
+  setTimeout(() => { $('#result').scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 60);
+  startLoop();
+}
+function reviewMol(m) {
+  S = makeState(m); S.review = true; S.locked = true;
+  $('#home').hidden = true; $('#buildCard').hidden = true;
+  showResult(0, 'verdict rev', '<div class="big">📚</div><div><h3>Bộ sưu tập · ' + fmtF(m.f) + ' – ' + esc(m.n) + '</h3><div class="stars">' + starsStr(starsOf(m)) + '</div>' +
+    '<div>Màn ' + (m.ch + 1) + ' · ' + esc(CHAPTERS[m.ch].t) + '. Bấm “Chơi lại” nếu muốn đạt thêm sao.</div></div>', false);
+}
+function setForm(idx) {
+  R.form = idx;
+  const f = S.forms[idx];
+  const tabs = $('#formTabs'); tabs.innerHTML = '';
+  if (S.forms.length > 1) {
+    S.forms.forEach((ff, i) => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = i === idx ? 'on' : ''; b.textContent = ff.label;
+      b.addEventListener('click', () => setForm(i)); tabs.appendChild(b);
+    });
+  }
+  renderLewisBox();
+  renderInfo(f);
+  const pos = C.alignPCA(C.build3D(f.g, { ang: S.mol.ang, tw: S.mol.tw }));
+  viewers.forEach(vw => vw.setModel(f.g, pos));
+}
+function renderLewisBox() {
+  const f = S.forms[R.form];
+  $('#lewisBox').innerHTML = lewisSVG(f.g, R.mode === 'lewis');
+  $('#lewisTitle').textContent = R.mode === 'lewis' ? 'Công thức Lewis' : 'Công thức cấu tạo';
+  $('#lewisCap').textContent = R.mode === 'lewis'
+    ? 'Mỗi cặp chấm là một cặp electron tự do; mỗi vạch là một cặp electron dùng chung (liên kết).'
+    : 'Công thức cấu tạo: chỉ vẽ các liên kết (vạch), bỏ các cặp electron tự do.';
+}
+
+/* ---------- vẽ công thức Lewis (SVG) ---------- */
+function lewisSVG(g, withLP) {
+  const L = C.layout2D(g, 66), p = L.p;
+  let minx = 1e9, miny = 1e9, maxx = -1e9, maxy = -1e9;
+  p.forEach(q => { minx = Math.min(minx, q[0]); maxx = Math.max(maxx, q[0]); miny = Math.min(miny, -q[1]); maxy = Math.max(maxy, -q[1]); });
+  const pad = 52;
+  const vx = minx - pad, vy = miny - pad, vw = (maxx - minx) + pad * 2, vh = (maxy - miny) + pad * 2;
+  const P = (i) => [p[i][0], -p[i][1]];
+  const rad = d => d * Math.PI / 180;
+  let s = '', bl = '', lp = '', lb = '', ch = '';
+  // nửa kích thước hộp nhãn (theo số chữ cái)
+  const hw = (i) => (g.atoms[i].el.length === 2 ? 16 : (g.atoms[i].el === 'H' ? 8 : 10));
+  const hh = (i) => (g.atoms[i].el === 'H' ? 10 : 12);
+  // khoảng cách từ tâm nhãn tới mép hộp theo hướng (ux,uy) + lề
+  const edge = (i, ux, uy, m) => 1 / Math.sqrt((ux * ux) / (hw(i) * hw(i)) + (uy * uy) / (hh(i) * hh(i))) + m;
+  g.bonds.forEach(b => {
+    const A = P(b.a), B = P(b.b);
+    const dx = B[0] - A[0], dy = B[1] - A[1], D = Math.hypot(dx, dy), ux = dx / D, uy = dy / D, nx = -uy, ny = ux;
+    const ra = edge(b.a, ux, uy, 4), rb = edge(b.b, ux, uy, 4);
+    const offs = b.o === 1 ? [0] : b.o === 2 ? [-3.8, 3.8] : [-6.5, 0, 6.5];
+    offs.forEach(o => {
+      bl += '<line x1="' + (A[0] + ux * ra + nx * o).toFixed(1) + '" y1="' + (A[1] + uy * ra + ny * o).toFixed(1) + '" x2="' + (B[0] - ux * rb + nx * o).toFixed(1) + '" y2="' + (B[1] - uy * rb + ny * o).toFixed(1) + '" stroke="#1b2438" stroke-width="2.6" stroke-linecap="round"/>';
+    });
+  });
+  g.atoms.forEach((a, i) => {
+    const [x, y] = P(i);
+    lb += '<text x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" dy=".35em" text-anchor="middle" font-size="' + (a.el === 'H' ? 20 : 23) + '" font-weight="800" fill="' + EL[a.el].ink + '" font-family="Segoe UI,system-ui,sans-serif">' + a.el + '</text>';
+    if (withLP) {
+      (L.lps[i] || []).forEach(ang => {
+        const ux = Math.cos(rad(ang)), uy = -Math.sin(rad(ang));
+        const d = edge(i, ux, uy, 7);
+        const cx = x + d * ux, cy = y + d * uy;
+        const px = -uy * 3.7, py = ux * 3.7;
+        lp += '<circle cx="' + (cx + px).toFixed(1) + '" cy="' + (cy + py).toFixed(1) + '" r="2.3" fill="#1b2438"/><circle cx="' + (cx - px).toFixed(1) + '" cy="' + (cy - py).toFixed(1) + '" r="2.3" fill="#1b2438"/>';
+      });
+      if (a.fc) {
+        const used = (L.used[i] || []).map(t => ((t % 360) + 360) % 360);
+        let best = 45, bd = -1;
+        [45, 135, 225, 315, 90, 0, 180, 270].forEach(c => {
+          const m = Math.min.apply(null, used.concat([999]).map(u => { const d = Math.abs(u - c) % 360; return Math.min(d, 360 - d); }));
+          if (m > bd + 1e-6) { bd = m; best = c; }
+        });
+        const ux = Math.cos(rad(best)), uy = -Math.sin(rad(best));
+        const d = edge(i, ux, uy, 11);
+        const cx = x + d * ux, cy = y + d * uy;
+        const big = Math.abs(a.fc) > 1;
+        const txt = big ? Math.abs(a.fc) + (a.fc > 0 ? '+' : '−') : (a.fc > 0 ? '+' : '−');
+        ch += '<circle cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="' + (big ? 9.5 : 7.5) + '" fill="#fff" stroke="#1b2438" stroke-width="1.4"/><text x="' + cx.toFixed(1) + '" y="' + cy.toFixed(1) + '" dy=".36em" text-anchor="middle" font-size="' + (big ? 10.5 : 12) + '" font-weight="700" fill="#1b2438">' + txt + '</text>';
+      }
+    }
+  });
+  const w = Math.min(vw * 1.15, 560);
+  return '<svg xmlns="' + SVGNS + '" viewBox="' + vx.toFixed(1) + ' ' + vy.toFixed(1) + ' ' + vw.toFixed(1) + ' ' + vh.toFixed(1) + '" width="' + w.toFixed(0) + '" role="img" aria-label="Công thức Lewis">' + bl + lp + lb + ch + '</svg>';
+}
+
+/* ---------- thông tin ---------- */
+function renderInfo(f) {
+  const g = f.g, m = S.mol;
+  const nb = g.bonds.reduce((s, b) => s + b.o, 0), nlp = g.atoms.reduce((s, a) => s + a.lp, 0);
+  const sigma = g.bonds.length, pi = nb - sigma;
+  const counts = {}; g.atoms.forEach(a => counts[a.el] = (counts[a.el] || 0) + 1);
+  const comp = Object.keys(counts).map(k => '<span class="pill" style="background:' + shade(EL[k].c, -.12) + ';color:' + EL[k].tc + '">' + k + (counts[k] > 1 ? subs(counts[k]) : '') + '</span>').join(' ');
+  let h = '<div class="card-head"><h3>Thông tin phân tử</h3></div>';
+  h += '<div style="font-size:26px;font-weight:700">' + fmtF(m.f) + '</div><div class="muted">' + esc(m.n) + '</div>';
+  h += '<div style="margin-top:8px">' + comp + '</div>';
+  h += '<div class="kv"><b>Tổng e hóa trị</b><span>' + g.ve + ' e (' + (g.ve / 2) + ' cặp)</span>' +
+    '<b>Liên kết</b><span>' + sigma + ' σ' + (pi ? ' + ' + pi + ' π' : '') + ' (' + nb + ' cặp e liên kết)</span>' +
+    '<b>Cặp e tự do</b><span>' + nlp + ' cặp</span></div>';
+  const charged = g.atoms.filter(a => a.fc);
+  if (charged.length) h += '<div class="kv"><b>Điện tích hình thức</b><span>' + charged.map(a => a.el + '<sup>' + (Math.abs(a.fc) > 1 ? Math.abs(a.fc) : '') + (a.fc > 0 ? '+' : '−') + '</sup>').join(', ') + '</span></div>';
+  const centers = g.atoms.filter(a => a.nb.length >= 2);
+  if (centers.length) {
+    const cnt = {}; centers.forEach(a => cnt[a.el] = (cnt[a.el] || 0) + 1);
+    const seen = {};
+    h += '<table class="shape"><tr><th>Nguyên tử</th><th>Dạng</th><th>Hình học</th><th>Góc</th><th>Lai hóa</th></tr>';
+    centers.forEach(a => {
+      seen[a.el] = (seen[a.el] || 0) + 1;
+      const sh = C.shapeOf(a);
+      let ang = sh.angle;
+      if (g.root === a.i && m.ang && a.lp > 0) ang = '≈ ' + String(m.ang).replace('.', ',') + '°';
+      h += '<tr><td><b>' + a.el + (cnt[a.el] > 1 ? subs(seen[a.el]) : '') + '</b></td><td>' + sh.type + '</td><td>' + sh.name + '</td><td>' + ang + '</td><td>' + sh.hyb + '</td></tr>';
+    });
+    h += '</table>';
+  } else h += '<div class="note">Phân tử gồm 2 nguyên tử nên luôn có dạng đường thẳng.</div>';
+  if (m.note) h += '<div class="note">' + esc(m.note) + '</div>';
+  h += '<div class="caption">A: nguyên tử trung tâm, X: nguyên tử liên kết, E: cặp e tự do. Góc là giá trị gần đúng theo thuyết VSEPR.</div>';
+  $('#infoBox').innerHTML = h;
+}
+
+/* ============================================================
+   BỘ VẼ 3D (canvas, tự viết)
+   ============================================================ */
+const view = { rx: -0.5, ry: 0.45, zoom: 1, auto: true, labels: true, dragging: false, dirty: true };
+function rot(p, rx, ry) {
+  const cy = Math.cos(ry), sy = Math.sin(ry), cx = Math.cos(rx), sx = Math.sin(rx);
+  const x1 = p[0] * cy + p[2] * sy, z1 = -p[0] * sy + p[2] * cy;
+  return [x1, p[1] * cx - z1 * sx, p[1] * sx + z1 * cx];
+}
+class Viewer {
+  constructor(cv, mode) {
+    this.cv = cv; this.ctx = cv.getContext('2d'); this.mode = mode; this.model = null;
+    let last = null;
+    cv.addEventListener('pointerdown', e => { view.dragging = true; last = [e.clientX, e.clientY]; try { cv.setPointerCapture(e.pointerId); } catch (_) { } });
+    cv.addEventListener('pointermove', e => {
+      if (!view.dragging || !last) return;
+      view.ry += (e.clientX - last[0]) * 0.011; view.rx += (e.clientY - last[1]) * 0.011;
+      view.rx = Math.max(-1.5, Math.min(1.5, view.rx)); last = [e.clientX, e.clientY]; view.dirty = true;
+    });
+    const up = () => { view.dragging = false; last = null; };
+    cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+    cv.addEventListener('wheel', e => { e.preventDefault(); view.zoom = Math.max(.5, Math.min(2.6, view.zoom * Math.exp(-e.deltaY * 0.0012))); view.dirty = true; }, { passive: false });
+  }
+  setModel(g, pos) {
+    this.model = { atoms: g.atoms.map((a, i) => ({ el: a.el, p: pos[i] })), bonds: g.bonds };
+    let R = 0;
+    this.model.atoms.forEach(a => { R = Math.max(R, Math.hypot(a.p[0], a.p[1], a.p[2]) + (this.mode === 'ss' ? EL[a.el].vdw : EL[a.el].vdw * .23)); });
+    this.R = Math.max(R, 1.4);
+    this.resize(); view.dirty = true;
+  }
+  resize() {
+    const r = this.cv.getBoundingClientRect(); const dpr = window.devicePixelRatio || 1;
+    if (!r.width) return;
+    this.w = r.width; this.h = r.height;
+    this.cv.width = Math.round(r.width * dpr); this.cv.height = Math.round(r.height * dpr);
+    this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  sphere(x, y, r, el) {
+    const ctx = this.ctx, c = EL[el].c;
+    const gr = ctx.createRadialGradient(x - r * .36, y - r * .4, r * .06, x, y, r);
+    gr.addColorStop(0, shade(c, .7)); gr.addColorStop(.5, c); gr.addColorStop(1, shade(c, -.45));
+    ctx.beginPath(); ctx.arc(x, y, r, 0, 6.2832); ctx.fillStyle = gr; ctx.fill();
+    ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(0,0,0,.3)'; ctx.stroke();
+    if (view.labels && r > 11) {
+      ctx.fillStyle = EL[el].tc; ctx.font = '800 ' + Math.min(r * .85, 30).toFixed(0) + 'px "Segoe UI",system-ui,sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(el, x, y + r * .04);
+    }
+  }
+  halfStick(A, M, el, order, W) {
+    const ctx = this.ctx, dx = M.x - A.x, dy = M.y - A.y, L = Math.hypot(dx, dy) || 1, nx = -dy / L, ny = dx / L;
+    const c = EL[el].c, n = order;
+    // que đơn to; que đôi, que ba mảnh hơn và cách nhau rõ để không bị nhầm
+    const w = n === 1 ? W : n === 2 ? W * .6 : W * .46, sp = w * 1.75;
+    for (let k = 0; k < n; k++) {
+      const o = (k - (n - 1) / 2) * sp;
+      const ax = A.x + nx * o, ay = A.y + ny * o, mx = M.x + nx * o, my = M.y + ny * o;
+      const cx = (ax + mx) / 2, cy = (ay + my) / 2;
+      const gr = ctx.createLinearGradient(cx + nx * w / 2, cy + ny * w / 2, cx - nx * w / 2, cy - ny * w / 2);
+      gr.addColorStop(0, shade(c, -.5)); gr.addColorStop(.32, shade(c, .35)); gr.addColorStop(.6, c); gr.addColorStop(1, shade(c, -.55));
+      ctx.lineCap = 'butt'; ctx.lineWidth = w; ctx.strokeStyle = gr;
+      ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(mx, my); ctx.stroke();
+    }
+  }
+  draw() {
+    const ctx = this.ctx; if (!this.w) return;
+    ctx.clearRect(0, 0, this.w, this.h);
+    if (!this.model) return;
+    const R = this.R, s = Math.min(this.w, this.h) * .5 / (R * 1.1) * view.zoom, D = R * 4 + 8, cx = this.w / 2, cy = this.h / 2;
+    const P = this.model.atoms.map(a => {
+      const q = rot(a.p, view.rx, view.ry), k = D / (D - q[2]);
+      return { x: cx + s * k * q[0], y: cy - s * k * q[1], z: q[2], k, el: a.el };
+    });
+    const items = [];
+    if (this.mode === 'ss') {
+      P.forEach(pt => items.push({ z: pt.z, f: () => this.sphere(pt.x, pt.y, EL[pt.el].vdw * s * pt.k * .98, pt.el) }));
+    } else {
+      this.model.bonds.forEach(b => {
+        const A = P[b.a], B = P[b.b];
+        const M = { x: (A.x + B.x) / 2, y: (A.y + B.y) / 2 }, W = .15 * s * (A.k + B.k) / 2;
+        items.push({ z: A.z - .02, f: () => this.halfStick(A, M, A.el, b.o, W) });
+        items.push({ z: B.z - .02, f: () => this.halfStick(B, M, B.el, b.o, W) });
+      });
+      P.forEach(pt => items.push({ z: pt.z, f: () => this.sphere(pt.x, pt.y, EL[pt.el].vdw * .23 * s * pt.k, pt.el) }));
+    }
+    items.sort((a, b) => a.z - b.z).forEach(it => it.f());
+  }
+}
+const viewers = [];
+let raf = 0;
+function loop() {
+  if ($('#result').hidden) { raf = 0; return; }
+  if (view.auto && !view.dragging) { view.ry += .0075; view.dirty = true; }
+  if (view.dirty) { viewers.forEach(v => v.draw()); view.dirty = false; }
+  raf = requestAnimationFrame(loop);
+}
+function startLoop() { viewers.forEach(v => v.resize()); view.dirty = true; if (!raf) raf = requestAnimationFrame(loop); }
+function stopLoop() { if (raf) cancelAnimationFrame(raf); raf = 0; }
+
+
+/* ============================================================
+   KHỞI TẠO
+   ============================================================ */
+function init() {
+  viewers.push(new Viewer($('#cvBS'), 'bs'), new Viewer($('#cvSF'), 'ss'));
+  buildChips(); buildAll(); showStats(); showSound(); showBest(); showMode(); setTab('free');
+  $('#formulaForm').addEventListener('submit', onSubmit);
+  $('#formula').addEventListener('input', onFormulaInput);
+  $('#formula').addEventListener('keydown', onFormulaKey);
+  $('#formula').addEventListener('blur', () => setTimeout(hideSug, 160));
+  $('#sug').addEventListener('mousedown', e => {
+    e.preventDefault(); const li = e.target.closest('li'); if (!li) return;
+    const m = sugList[+li.dataset.i]; hideSug(); if (m) startFree(m);
+  });
+  $$('#modeSeg button').forEach(b => b.addEventListener('click', () => { freeMode = b.dataset.mode; store.freeMode = freeMode; save(); showMode(); sfx('tick'); }));
+  $('#btnRandom').addEventListener('click', () => startFree(randomMol()));
+  $('#toggleAll').addEventListener('click', () => {
+    const w = $('#allWrap'); w.hidden = !w.hidden;
+    $('#toggleAll').textContent = w.hidden ? 'Xem toàn bộ thư viện (' + C.MOLS.length + ' phân tử)' : 'Ẩn danh sách đầy đủ';
+  });
+  $('#toggleAll').textContent = 'Xem toàn bộ thư viện (' + C.MOLS.length + ' phân tử)';
+  $('#codeForm').addEventListener('submit', onCode);
+  $('#genForm').addEventListener('submit', onGen);
+  $('#tabFree').addEventListener('click', () => { sfx('tick'); setTab('free'); });
+  $('#tabMap').addEventListener('click', () => { sfx('tick'); setTab('map'); });
+  $('#tabColl').addEventListener('click', () => { sfx('tick'); setTab('coll'); });
+  $('#btnSound').addEventListener('click', () => { store.sound = !store.sound; save(); showSound(); if (store.sound) sfx('tick'); });
+  $('#btnPlaceAll').addEventListener('click', placeAll);
+  $('#btnClear').addEventListener('click', clearBoard);
+  $('#btnHint').addEventListener('click', onHint);
+  $('#btnCheck').addEventListener('click', () => onCheck(false));
+  $('#btnGiveUp').addEventListener('click', () => {
+    if (!S || S.locked) return;
+    if (CH || S.practice) { onCheck(true); return; }
+    if (window.confirm('Xem đáp án và kết thúc ván này (không được sao)?')) onCheck(true);
+  });
+  $('#btnChStart').addEventListener('click', startChallenge);
+  $('#btnChQuit').addEventListener('click', () => { if (window.confirm('Thoát thử thách? Kết quả lượt này sẽ không được lưu.')) goHome(true); });
+  $('#btnReplay').addEventListener('click', () => startMol(S.mol, false, S.practice));
+  $('#btnNext').addEventListener('click', () => startMol(randomMol(), false, S.practice));
+  $('#btnChapNext').addEventListener('click', () => {
+    const nx = $('#btnChapNext')._mol; if (!nx) return;
+    if (AS) { if (nx.end) showAssignResult(); else { AS.idx++; startMol(nx, false, false, true); } }
+    else startMol(nx);
+  });
+  $('#btnHome').addEventListener('click', () => {
+    if (AS && AS.results.length < AS.mols.length && !window.confirm('Thoát bài kiểm tra? Kết quả sẽ không được gửi.')) return;
+    goHome(true);
+  });
+  $$('#segLewis button').forEach(b => b.addEventListener('click', () => {
+    R.mode = b.dataset.m; $$('#segLewis button').forEach(x => x.classList.toggle('on', x === b)); renderLewisBox();
+  }));
+  $('#optAuto').addEventListener('change', e => { view.auto = e.target.checked; view.dirty = true; });
+  $('#optLabel').addEventListener('change', e => { view.labels = e.target.checked; view.dirty = true; });
+  $('#btnResetView').addEventListener('click', () => { view.rx = -0.5; view.ry = 0.45; view.zoom = 1; view.dirty = true; });
+  window.addEventListener('resize', () => { viewers.forEach(v => v.resize()); view.dirty = true; });
+  window.addEventListener('hashchange', loadFromHash);
+  if (window.ResizeObserver) { const ro = new ResizeObserver(() => { viewers.forEach(v => v.resize()); view.dirty = true; }); viewers.forEach(v => ro.observe(v.cv)); }
+  loadFromHash();
+  if ($('#assignCard').hidden) $('#formula').focus();
+}
+// cho phép kiểm thử từ bên ngoài
+window.__game = {
+  startMol: (f, practice) => { const r = C.lookup(f); if (r.mol) startMol(r.mol, false, !!practice); },
+  get S() { return S; }, store, onCheck, placeAll, view, onAtomClick, renderBoard, setForm, goHome, CHAPTERS, reviewMol,
+  get CH() { return CH; }, get AS() { return AS; }, chEndNow: () => { if (CH) CH.end = performance.now() + 50; }
+};
+init();
+})();
+
+</script>
+</body>
+</html>
